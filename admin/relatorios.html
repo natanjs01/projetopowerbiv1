@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciar Relatórios - BI Portal Secure</title>
+    
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <link rel="stylesheet" href="../assets/css/admin.css">
+</head>
+<body>
+    <div class="admin-wrapper">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>🔐 BI Portal</h2>
+                <p>Administração</p>
+            </div>
+            
+            <nav class="sidebar-menu">
+                <a href="index.html" class="menu-item">
+                    <span class="menu-item-icon">📊</span>
+                    Dashboard
+                </a>
+                <a href="usuarios.html" class="menu-item">
+                    <span class="menu-item-icon">👥</span>
+                    Usuários
+                </a>
+                <a href="relatorios.html" class="menu-item active">
+                    <span class="menu-item-icon">📁</span>
+                    Relatórios
+                </a>
+                <a href="setores.html" class="menu-item">
+                    <span class="menu-item-icon">🏢</span>
+                    Setores
+                </a>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="user-avatar">
+                        <span class="usuario-inicial"></span>
+                    </div>
+                    <div class="user-details">
+                        <div class="user-name usuario-nome"></div>
+                        <div class="user-role">Administrador</div>
+                    </div>
+                </div>
+                <button class="btn btn-secondary btn-block btn-sm btn-logout">
+                    Sair
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="content-header">
+                <h1 class="content-title">Gerenciar Relatórios</h1>
+                <button class="btn btn-primary" onclick="abrirModalRelatorio()">
+                    + Novo Relatório
+                </button>
+            </div>
+
+            <!-- Filtros -->
+            <div class="card">
+                <div class="card-body">
+                    <div class="filtros">
+                        <input type="text" id="filtroBusca" placeholder="Buscar por título ou descrição..." class="input">
+                        <select id="filtroStatus" class="input">
+                            <option value="">Todos os status</option>
+                            <option value="true">Ativos</option>
+                            <option value="false">Inativos</option>
+                        </select>
+                        <button class="btn btn-secondary" onclick="carregarRelatorios()">
+                            Filtrar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Grid de Relatórios -->
+            <div id="relatoriosGrid" class="reports-grid">
+                <div class="text-center" style="grid-column: 1 / -1; padding: 40px;">
+                    Carregando...
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Relatório -->
+    <div class="modal" id="modalRelatorio">
+        <div class="modal-content modal-lg">
+            <div class="modal-header">
+                <h3 id="modalRelatorioTitulo">Novo Relatório</h3>
+                <button class="modal-close" onclick="fecharModalRelatorio()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="formRelatorio" onsubmit="salvarRelatorio(event)">
+                    <input type="hidden" id="relatorioId" value="">
+                    
+                    <div class="form-group">
+                        <label for="relatorioTitulo">Título do Relatório *</label>
+                        <input type="text" id="relatorioTitulo" class="input" required placeholder="Ex: Kardex de Estoque">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="relatorioDescricao">Descrição</label>
+                        <textarea id="relatorioDescricao" class="input" rows="2" placeholder="Breve descrição do relatório"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="relatorioIframe">Cole o iframe completo do Power BI *</label>
+                        <textarea id="relatorioIframe" class="input" rows="6" required 
+                                  placeholder='<iframe title="..." width="..." height="..." src="https://app.powerbi.com/..." frameborder="0" allowFullScreen="true"></iframe>'></textarea>
+                        <small>Cole o código iframe completo gerado no Power BI. O reportId será extraído automaticamente.</small>
+                    </div>
+
+                    <div id="reportIdExtraido" style="display:none; margin-top: 10px;">
+                        <div class="alert alert-success">
+                            ✅ Report ID extraído: <strong id="reportIdValor"></strong>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="relatorioAtivo" checked>
+                            Relatório Ativo
+                        </label>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" onclick="fecharModalRelatorio()">
+                            Cancelar
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            Salvar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Permissões -->
+    <div class="modal" id="modalPermissoes">
+        <div class="modal-content modal-lg">
+            <div class="modal-header">
+                <h3 id="modalPermissoesTitulo">Gerenciar Permissões</h3>
+                <button class="modal-close" onclick="fecharModalPermissoes()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info">
+                    Selecione usuários e/ou setores que terão acesso a este relatório.
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <!-- Usuários -->
+                    <div>
+                        <h4>Por Usuário</h4>
+                        <div class="form-group">
+                            <input type="text" id="buscaUsuario" class="input" placeholder="Buscar usuário...">
+                        </div>
+                        <div id="listaUsuarios" class="permissions-list">
+                            Carregando...
+                        </div>
+                    </div>
+
+                    <!-- Setores -->
+                    <div>
+                        <h4>Por Setor</h4>
+                        <div class="form-group">
+                            <input type="text" id="buscaSetor" class="input" placeholder="Buscar setor...">
+                        </div>
+                        <div id="listaSetores" class="permissions-list">
+                            Carregando...
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="fecharModalPermissoes()">
+                        Fechar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bcryptjs/2.4.3/bcrypt.min.js"></script>
+    <script src="../assets/js/config.js"></script>
+    <script src="../assets/js/auth.js"></script>
+    <script src="../assets/js/reports.js"></script>
+    <script src="../assets/js/admin.js"></script>
+    <script src="../assets/js/main.js"></script>
+    
+    <script>
+        let relatorioPermissoesId = null;
+        let todosUsuarios = [];
+        let todosSetores = [];
+
+        // Proteger página (apenas admin)
+        if (!protegerPagina('admin')) {
+            // Já redirecionou
+        }
+
+        // Carregar dados ao iniciar
+        document.addEventListener('DOMContentLoaded', async () => {
+            const usuario = obterSessao();
+            if (usuario) {
+                const inicial = usuario.nome.charAt(0).toUpperCase();
+                document.querySelectorAll('.usuario-inicial').forEach(el => el.textContent = inicial);
+            }
+
+            await carregarRelatorios();
+
+            // Auto-extrair reportId quando colar iframe
+            document.getElementById('relatorioIframe').addEventListener('input', function() {
+                const iframe = this.value;
+                const reportId = extrairReportId(iframe);
+                
+                if (reportId) {
+                    document.getElementById('reportIdValor').textContent = reportId;
+                    document.getElementById('reportIdExtraido').style.display = 'block';
+                } else {
+                    document.getElementById('reportIdExtraido').style.display = 'none';
+                }
+            });
+        });
+
+        // Carregar relatórios
+        async function carregarRelatorios() {
+            const grid = document.getElementById('relatoriosGrid');
+            const filtroBusca = document.getElementById('filtroBusca').value.toLowerCase();
+            const filtroStatus = document.getElementById('filtroStatus').value;
+
+            try {
+                let query = supabase
+                    .from('relatorios')
+                    .select('*');
+
+                if (filtroStatus !== '') {
+                    query = query.eq('ativo', filtroStatus === 'true');
+                }
+
+                const { data, error } = await query.order('titulo');
+
+                if (error) throw error;
+
+                // Filtro de busca no client-side
+                let relatorios = data;
+                if (filtroBusca) {
+                    relatorios = data.filter(r => 
+                        r.titulo.toLowerCase().includes(filtroBusca) ||
+                        (r.descricao && r.descricao.toLowerCase().includes(filtroBusca))
+                    );
+                }
+
+                if (relatorios.length === 0) {
+                    grid.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 40px;">Nenhum relatório encontrado</div>';
+                    return;
+                }
+
+                grid.innerHTML = relatorios.map(relatorio => `
+                    <div class="report-card ${!relatorio.ativo ? 'inactive' : ''}">
+                        <div class="report-header">
+                            <h3>${relatorio.titulo}</h3>
+                            <span class="badge ${relatorio.ativo ? 'badge-success' : 'badge-secondary'}">
+                                ${relatorio.ativo ? 'Ativo' : 'Inativo'}
+                            </span>
+                        </div>
+                        <p class="report-description">${relatorio.descricao || 'Sem descrição'}</p>
+                        <div class="report-meta">
+                            <small>Report ID: ${relatorio.report_id}</small>
+                        </div>
+                        <div class="report-actions">
+                            <button class="btn btn-sm btn-secondary" onclick="editarRelatorio('${relatorio.id}')" title="Editar">
+                                ✏️ Editar
+                            </button>
+                            <button class="btn btn-sm btn-info" onclick="gerenciarPermissoes('${relatorio.id}')" title="Permissões">
+                                🔐 Permissões
+                            </button>
+                            <button class="btn btn-sm ${relatorio.ativo ? 'btn-danger' : 'btn-success'}" 
+                                    onclick="toggleAtivoRelatorio('${relatorio.id}', ${!relatorio.ativo})" 
+                                    title="${relatorio.ativo ? 'Desativar' : 'Ativar'}">
+                                ${relatorio.ativo ? '🚫' : '✅'}
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Erro ao carregar relatórios:', error);
+                grid.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 40px;">Erro ao carregar relatórios</div>';
+            }
+        }
+
+        // Abrir modal para novo relatório
+        function abrirModalRelatorio() {
+            document.getElementById('modalRelatorioTitulo').textContent = 'Novo Relatório';
+            document.getElementById('formRelatorio').reset();
+            document.getElementById('relatorioId').value = '';
+            document.getElementById('relatorioAtivo').checked = true;
+            document.getElementById('reportIdExtraido').style.display = 'none';
+            document.getElementById('modalRelatorio').style.display = 'flex';
+        }
+
+        // Fechar modal relatório
+        function fecharModalRelatorio() {
+            document.getElementById('modalRelatorio').style.display = 'none';
+        }
+
+        // Editar relatório
+        async function editarRelatorio(id) {
+            try {
+                const { data, error } = await supabase
+                    .from('relatorios')
+                    .select('*')
+                    .eq('id', id)
+                    .single();
+
+                if (error) throw error;
+
+                document.getElementById('modalRelatorioTitulo').textContent = 'Editar Relatório';
+                document.getElementById('relatorioId').value = data.id;
+                document.getElementById('relatorioTitulo').value = data.titulo;
+                document.getElementById('relatorioDescricao').value = data.descricao || '';
+                document.getElementById('relatorioIframe').value = data.iframe_code;
+                document.getElementById('relatorioAtivo').checked = data.ativo;
+                
+                // Mostrar reportId extraído
+                document.getElementById('reportIdValor').textContent = data.report_id;
+                document.getElementById('reportIdExtraido').style.display = 'block';
+                
+                document.getElementById('modalRelatorio').style.display = 'flex';
+            } catch (error) {
+                console.error('Erro ao carregar relatório:', error);
+                mostrarAlerta('Erro ao carregar dados do relatório', 'error');
+            }
+        }
+
+        // Salvar relatório
+        async function salvarRelatorio(event) {
+            event.preventDefault();
+
+            const id = document.getElementById('relatorioId').value;
+            const titulo = document.getElementById('relatorioTitulo').value;
+            const descricao = document.getElementById('relatorioDescricao').value;
+            const iframeCode = document.getElementById('relatorioIframe').value;
+            const ativo = document.getElementById('relatorioAtivo').checked;
+
+            // Extrair reportId
+            const reportId = extrairReportId(iframeCode);
+            if (!reportId) {
+                mostrarAlerta('Não foi possível extrair o Report ID do iframe. Verifique o código.', 'error');
+                return;
+            }
+
+            try {
+                if (id) {
+                    // Atualizar relatório existente
+                    const { error } = await supabase
+                        .from('relatorios')
+                        .update({
+                            titulo,
+                            descricao,
+                            report_id: reportId,
+                            iframe_code: iframeCode,
+                            ativo
+                        })
+                        .eq('id', id);
+
+                    if (error) throw error;
+
+                    mostrarAlerta('Relatório atualizado com sucesso!', 'success');
+                } else {
+                    // Criar novo relatório
+                    await adicionarRelatorio(titulo, descricao, reportId, iframeCode);
+                    mostrarAlerta('Relatório criado com sucesso!', 'success');
+                }
+
+                fecharModalRelatorio();
+                await carregarRelatorios();
+            } catch (error) {
+                console.error('Erro ao salvar relatório:', error);
+                mostrarAlerta('Erro ao salvar relatório: ' + error.message, 'error');
+            }
+        }
+
+        // Toggle ativo/inativo
+        async function toggleAtivoRelatorio(id, novoStatus) {
+            if (!confirm(`Deseja realmente ${novoStatus ? 'ativar' : 'desativar'} este relatório?`)) {
+                return;
+            }
+
+            try {
+                const { error } = await supabase
+                    .from('relatorios')
+                    .update({ ativo: novoStatus })
+                    .eq('id', id);
+
+                if (error) throw error;
+
+                mostrarAlerta('Status atualizado com sucesso!', 'success');
+                await carregarRelatorios();
+            } catch (error) {
+                console.error('Erro ao atualizar status:', error);
+                mostrarAlerta('Erro ao atualizar status', 'error');
+            }
+        }
+
+        // Gerenciar permissões
+        async function gerenciarPermissoes(relatorioId) {
+            relatorioPermissoesId = relatorioId;
+
+            // Buscar título do relatório
+            const { data: relatorio } = await supabase
+                .from('relatorios')
+                .select('titulo')
+                .eq('id', relatorioId)
+                .single();
+
+            document.getElementById('modalPermissoesTitulo').textContent = 
+                `Permissões: ${relatorio?.titulo || 'Relatório'}`;
+
+            await carregarUsuariosPermissoes();
+            await carregarSetoresPermissoes();
+
+            document.getElementById('modalPermissoes').style.display = 'flex';
+        }
+
+        // Fechar modal permissões
+        function fecharModalPermissoes() {
+            document.getElementById('modalPermissoes').style.display = 'none';
+            relatorioPermissoesId = null;
+        }
+
+        // Carregar usuários para permissões
+        async function carregarUsuariosPermissoes() {
+            const lista = document.getElementById('listaUsuarios');
+
+            try {
+                // Buscar todos usuários
+                const { data: usuarios, error: errorUsuarios } = await supabase
+                    .from('usuarios')
+                    .select('id, nome, email')
+                    .eq('ativo', true)
+                    .order('nome');
+
+                if (errorUsuarios) throw errorUsuarios;
+
+                todosUsuarios = usuarios;
+
+                // Buscar permissões existentes
+                const { data: permissoes, error: errorPermissoes } = await supabase
+                    .from('permissoes')
+                    .select('usuario_id')
+                    .eq('relatorio_id', relatorioPermissoesId)
+                    .not('usuario_id', 'is', null);
+
+                if (errorPermissoes) throw errorPermissoes;
+
+                const permissoesUsuarios = permissoes.map(p => p.usuario_id);
+
+                lista.innerHTML = usuarios.map(usuario => {
+                    const temPermissao = permissoesUsuarios.includes(usuario.id);
+                    return `
+                        <div class="permission-item">
+                            <label>
+                                <input type="checkbox" 
+                                       ${temPermissao ? 'checked' : ''}
+                                       onchange="togglePermissaoUsuario('${usuario.id}', this.checked)">
+                                <div>
+                                    <div class="permission-name">${usuario.nome}</div>
+                                    <div class="permission-email">${usuario.email}</div>
+                                </div>
+                            </label>
+                        </div>
+                    `;
+                }).join('');
+
+                // Filtro de busca
+                document.getElementById('buscaUsuario').addEventListener('input', function() {
+                    filtrarUsuarios(this.value);
+                });
+            } catch (error) {
+                console.error('Erro ao carregar usuários:', error);
+                lista.innerHTML = '<p>Erro ao carregar usuários</p>';
+            }
+        }
+
+        // Carregar setores para permissões
+        async function carregarSetoresPermissoes() {
+            const lista = document.getElementById('listaSetores');
+
+            try {
+                // Buscar todos setores
+                const { data: setores, error: errorSetores } = await supabase
+                    .from('setores')
+                    .select('id, nome')
+                    .order('nome');
+
+                if (errorSetores) throw errorSetores;
+
+                todosSetores = setores;
+
+                // Buscar permissões existentes
+                const { data: permissoes, error: errorPermissoes } = await supabase
+                    .from('permissoes')
+                    .select('setor_id')
+                    .eq('relatorio_id', relatorioPermissoesId)
+                    .not('setor_id', 'is', null);
+
+                if (errorPermissoes) throw errorPermissoes;
+
+                const permissoesSetores = permissoes.map(p => p.setor_id);
+
+                lista.innerHTML = setores.map(setor => {
+                    const temPermissao = permissoesSetores.includes(setor.id);
+                    return `
+                        <div class="permission-item">
+                            <label>
+                                <input type="checkbox" 
+                                       ${temPermissao ? 'checked' : ''}
+                                       onchange="togglePermissaoSetor('${setor.id}', this.checked)">
+                                <div>
+                                    <div class="permission-name">${setor.nome}</div>
+                                </div>
+                            </label>
+                        </div>
+                    `;
+                }).join('');
+
+                // Filtro de busca
+                document.getElementById('buscaSetor').addEventListener('input', function() {
+                    filtrarSetores(this.value);
+                });
+            } catch (error) {
+                console.error('Erro ao carregar setores:', error);
+                lista.innerHTML = '<p>Erro ao carregar setores</p>';
+            }
+        }
+
+        // Toggle permissão de usuário
+        async function togglePermissaoUsuario(usuarioId, conceder) {
+            try {
+                if (conceder) {
+                    await concederPermissao(relatorioPermissoesId, usuarioId, null);
+                } else {
+                    await removerPermissao(relatorioPermissoesId, usuarioId, null);
+                }
+            } catch (error) {
+                console.error('Erro ao atualizar permissão:', error);
+                mostrarAlerta('Erro ao atualizar permissão', 'error');
+            }
+        }
+
+        // Toggle permissão de setor
+        async function togglePermissaoSetor(setorId, conceder) {
+            try {
+                if (conceder) {
+                    await concederPermissao(relatorioPermissoesId, null, setorId);
+                } else {
+                    await removerPermissao(relatorioPermissoesId, null, setorId);
+                }
+            } catch (error) {
+                console.error('Erro ao atualizar permissão:', error);
+                mostrarAlerta('Erro ao atualizar permissão', 'error');
+            }
+        }
+
+        // Remover permissão
+        async function removerPermissao(relatorioId, usuarioId, setorId) {
+            let query = supabase
+                .from('permissoes')
+                .delete()
+                .eq('relatorio_id', relatorioId);
+
+            if (usuarioId) {
+                query = query.eq('usuario_id', usuarioId);
+            } else {
+                query = query.eq('setor_id', setorId);
+            }
+
+            const { error } = await query;
+            if (error) throw error;
+        }
+
+        // Filtrar usuários
+        function filtrarUsuarios(busca) {
+            const lista = document.getElementById('listaUsuarios');
+            const items = lista.querySelectorAll('.permission-item');
+            
+            items.forEach(item => {
+                const texto = item.textContent.toLowerCase();
+                item.style.display = texto.includes(busca.toLowerCase()) ? 'block' : 'none';
+            });
+        }
+
+        // Filtrar setores
+        function filtrarSetores(busca) {
+            const lista = document.getElementById('listaSetores');
+            const items = lista.querySelectorAll('.permission-item');
+            
+            items.forEach(item => {
+                const texto = item.textContent.toLowerCase();
+                item.style.display = texto.includes(busca.toLowerCase()) ? 'block' : 'none';
+            });
+        }
+    </script>
+</body>
+</html>

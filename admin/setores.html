@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciar Setores - BI Portal Secure</title>
+    
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <link rel="stylesheet" href="../assets/css/admin.css">
+</head>
+<body>
+    <div class="admin-wrapper">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>🔐 BI Portal</h2>
+                <p>Administração</p>
+            </div>
+            
+            <nav class="sidebar-menu">
+                <a href="index.html" class="menu-item">
+                    <span class="menu-item-icon">📊</span>
+                    Dashboard
+                </a>
+                <a href="usuarios.html" class="menu-item">
+                    <span class="menu-item-icon">👥</span>
+                    Usuários
+                </a>
+                <a href="relatorios.html" class="menu-item">
+                    <span class="menu-item-icon">📁</span>
+                    Relatórios
+                </a>
+                <a href="setores.html" class="menu-item active">
+                    <span class="menu-item-icon">🏢</span>
+                    Setores
+                </a>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="user-avatar">
+                        <span class="usuario-inicial"></span>
+                    </div>
+                    <div class="user-details">
+                        <div class="user-name usuario-nome"></div>
+                        <div class="user-role">Administrador</div>
+                    </div>
+                </div>
+                <button class="btn btn-secondary btn-block btn-sm btn-logout">
+                    Sair
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="content-header">
+                <h1 class="content-title">Gerenciar Setores</h1>
+                <button class="btn btn-primary" onclick="abrirModalSetor()">
+                    + Novo Setor
+                </button>
+            </div>
+
+            <!-- Filtros -->
+            <div class="card">
+                <div class="card-body">
+                    <div class="filtros">
+                        <input type="text" id="filtroBusca" placeholder="Buscar setor..." class="input" onkeyup="filtrarSetores()">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Grid de Setores -->
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table id="setoresTable">
+                            <thead>
+                                <tr>
+                                    <th>Nome do Setor</th>
+                                    <th>Nº Usuários</th>
+                                    <th>Criado em</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="setoresTableBody">
+                                <tr>
+                                    <td colspan="4" class="text-center">Carregando...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Setor -->
+    <div class="modal" id="modalSetor">
+        <div class="modal-content modal-sm">
+            <div class="modal-header">
+                <h3 id="modalSetorTitulo">Novo Setor</h3>
+                <button class="modal-close" onclick="fecharModalSetor()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="formSetor" onsubmit="salvarSetor(event)">
+                    <input type="hidden" id="setorId" value="">
+                    
+                    <div class="form-group">
+                        <label for="setorNome">Nome do Setor *</label>
+                        <input type="text" id="setorNome" class="input" required 
+                               placeholder="Ex: Financeiro, TI, Comercial...">
+                        <small>Nome único e descritivo do departamento/área</small>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" onclick="fecharModalSetor()">
+                            Cancelar
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            Salvar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Confirmação Exclusão -->
+    <div class="modal" id="modalExcluir">
+        <div class="modal-content modal-sm">
+            <div class="modal-header">
+                <h3>⚠️ Confirmar Exclusão</h3>
+                <button class="modal-close" onclick="fecharModalExcluir()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <strong>Atenção!</strong> Esta ação não pode ser desfeita.
+                </div>
+                
+                <p>Tem certeza que deseja excluir o setor <strong id="setorExcluirNome"></strong>?</p>
+                
+                <div id="setorTemUsuarios" style="display:none;">
+                    <div class="alert alert-danger">
+                        <strong>⚠️ Este setor possui usuários associados!</strong><br>
+                        Ao excluir, os usuários ficarão sem setor.
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="fecharModalExcluir()">
+                        Cancelar
+                    </button>
+                    <button type="button" class="btn btn-danger" onclick="confirmarExclusao()">
+                        Sim, Excluir
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bcryptjs/2.4.3/bcrypt.min.js"></script>
+    <script src="../assets/js/config.js"></script>
+    <script src="../assets/js/auth.js"></script>
+    <script src="../assets/js/reports.js"></script>
+    <script src="../assets/js/admin.js"></script>
+    <script src="../assets/js/main.js"></script>
+    
+    <script>
+        let setorExcluirId = null;
+        let todosSetores = [];
+
+        // Proteger página (apenas admin)
+        if (!protegerPagina('admin')) {
+            // Já redirecionou
+        }
+
+        // Carregar dados ao iniciar
+        document.addEventListener('DOMContentLoaded', async () => {
+            const usuario = obterSessao();
+            if (usuario) {
+                const inicial = usuario.nome.charAt(0).toUpperCase();
+                document.querySelectorAll('.usuario-inicial').forEach(el => el.textContent = inicial);
+            }
+
+            await carregarSetores();
+        });
+
+        // Carregar setores
+        async function carregarSetores() {
+            const tbody = document.getElementById('setoresTableBody');
+
+            try {
+                // Buscar setores com contagem de usuários
+                const { data: setores, error } = await supabase
+                    .from('setores')
+                    .select(`
+                        *,
+                        usuarios:usuarios(count)
+                    `)
+                    .order('nome');
+
+                if (error) throw error;
+
+                todosSetores = setores;
+
+                if (setores.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" class="text-center">Nenhum setor encontrado</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = setores.map(setor => {
+                    const numUsuarios = setor.usuarios[0]?.count || 0;
+                    
+                    return `
+                        <tr>
+                            <td><strong>${setor.nome}</strong></td>
+                            <td>
+                                <span class="badge ${numUsuarios > 0 ? 'badge-info' : 'badge-secondary'}">
+                                    ${numUsuarios} ${numUsuarios === 1 ? 'usuário' : 'usuários'}
+                                </span>
+                            </td>
+                            <td>${formatarData(setor.created_at)}</td>
+                            <td>
+                                <button class="btn btn-sm btn-secondary" onclick="editarSetor('${setor.id}')" title="Editar">
+                                    ✏️ Editar
+                                </button>
+                                <button class="btn btn-sm btn-danger" onclick="abrirModalExcluir('${setor.id}', '${setor.nome}', ${numUsuarios})" title="Excluir">
+                                    🗑️ Excluir
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+
+                filtrarSetores(); // Aplicar filtro inicial
+            } catch (error) {
+                console.error('Erro ao carregar setores:', error);
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center">Erro ao carregar setores</td></tr>';
+            }
+        }
+
+        // Filtrar setores
+        function filtrarSetores() {
+            const busca = document.getElementById('filtroBusca').value.toLowerCase();
+            const tbody = document.getElementById('setoresTableBody');
+            const rows = tbody.querySelectorAll('tr');
+
+            rows.forEach(row => {
+                const texto = row.textContent.toLowerCase();
+                row.style.display = texto.includes(busca) ? '' : 'none';
+            });
+        }
+
+        // Abrir modal para novo setor
+        function abrirModalSetor() {
+            document.getElementById('modalSetorTitulo').textContent = 'Novo Setor';
+            document.getElementById('formSetor').reset();
+            document.getElementById('setorId').value = '';
+            document.getElementById('modalSetor').style.display = 'flex';
+            document.getElementById('setorNome').focus();
+        }
+
+        // Fechar modal setor
+        function fecharModalSetor() {
+            document.getElementById('modalSetor').style.display = 'none';
+        }
+
+        // Editar setor
+        async function editarSetor(id) {
+            try {
+                const { data, error } = await supabase
+                    .from('setores')
+                    .select('*')
+                    .eq('id', id)
+                    .single();
+
+                if (error) throw error;
+
+                document.getElementById('modalSetorTitulo').textContent = 'Editar Setor';
+                document.getElementById('setorId').value = data.id;
+                document.getElementById('setorNome').value = data.nome;
+                
+                document.getElementById('modalSetor').style.display = 'flex';
+                document.getElementById('setorNome').focus();
+            } catch (error) {
+                console.error('Erro ao carregar setor:', error);
+                mostrarAlerta('Erro ao carregar dados do setor', 'error');
+            }
+        }
+
+        // Salvar setor
+        async function salvarSetor(event) {
+            event.preventDefault();
+
+            const id = document.getElementById('setorId').value;
+            const nome = document.getElementById('setorNome').value.trim();
+
+            if (!nome) {
+                mostrarAlerta('Digite o nome do setor', 'error');
+                return;
+            }
+
+            try {
+                if (id) {
+                    // Atualizar setor existente
+                    const { error } = await supabase
+                        .from('setores')
+                        .update({ nome })
+                        .eq('id', id);
+
+                    if (error) throw error;
+
+                    mostrarAlerta('Setor atualizado com sucesso!', 'success');
+                } else {
+                    // Criar novo setor
+                    const { error } = await supabase
+                        .from('setores')
+                        .insert([{ nome }]);
+
+                    if (error) {
+                        if (error.code === '23505') { // Unique violation
+                            throw new Error('Já existe um setor com este nome');
+                        }
+                        throw error;
+                    }
+
+                    mostrarAlerta('Setor criado com sucesso!', 'success');
+                }
+
+                fecharModalSetor();
+                await carregarSetores();
+            } catch (error) {
+                console.error('Erro ao salvar setor:', error);
+                mostrarAlerta('Erro ao salvar setor: ' + error.message, 'error');
+            }
+        }
+
+        // Abrir modal de exclusão
+        function abrirModalExcluir(id, nome, numUsuarios) {
+            setorExcluirId = id;
+            document.getElementById('setorExcluirNome').textContent = nome;
+            
+            if (numUsuarios > 0) {
+                document.getElementById('setorTemUsuarios').style.display = 'block';
+            } else {
+                document.getElementById('setorTemUsuarios').style.display = 'none';
+            }
+
+            document.getElementById('modalExcluir').style.display = 'flex';
+        }
+
+        // Fechar modal exclusão
+        function fecharModalExcluir() {
+            document.getElementById('modalExcluir').style.display = 'none';
+            setorExcluirId = null;
+        }
+
+        // Confirmar exclusão
+        async function confirmarExclusao() {
+            if (!setorExcluirId) return;
+
+            try {
+                // Primeiro, remover setor_id dos usuários (setar como NULL)
+                await supabase
+                    .from('usuarios')
+                    .update({ setor_id: null })
+                    .eq('setor_id', setorExcluirId);
+
+                // Depois excluir o setor
+                const { error } = await supabase
+                    .from('setores')
+                    .delete()
+                    .eq('id', setorExcluirId);
+
+                if (error) throw error;
+
+                mostrarAlerta('Setor excluído com sucesso!', 'success');
+                fecharModalExcluir();
+                await carregarSetores();
+            } catch (error) {
+                console.error('Erro ao excluir setor:', error);
+                mostrarAlerta('Erro ao excluir setor: ' + error.message, 'error');
+            }
+        }
+    </script>
+</body>
+</html>

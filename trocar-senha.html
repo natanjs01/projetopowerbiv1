@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trocar Senha - BI Portal Secure</title>
+    
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/login.css">
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-card">
+            <div class="login-header">
+                <h1>🔐 Trocar Senha</h1>
+                <p>Crie uma senha segura para sua conta</p>
+            </div>
+            
+            <div class="login-body">
+                <div class="alert alert-info" style="margin-bottom: 24px;">
+                    <strong>⚠️ Troca Obrigatória</strong><br>
+                    Por segurança, você precisa criar uma nova senha antes de continuar.
+                </div>
+
+                <form id="formTrocarSenha" onsubmit="handleTrocarSenha(event)">
+                    <div id="alertContainer"></div>
+                    
+                    <div class="form-group">
+                        <label for="senhaAtual">Senha Atual (se souber)</label>
+                        <div class="password-wrapper">
+                            <input 
+                                type="password" 
+                                id="senhaAtual" 
+                                class="form-control" 
+                                placeholder="Senha temporária"
+                            >
+                            <button 
+                                type="button" 
+                                class="password-toggle" 
+                                onclick="togglePassword('senhaAtual')"
+                            >
+                                👁️
+                            </button>
+                        </div>
+                        <small style="color: var(--gray-600); font-size: 12px;">
+                            Deixe em branco se for primeiro acesso
+                        </small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="novaSenha">Nova Senha *</label>
+                        <div class="password-wrapper">
+                            <input 
+                                type="password" 
+                                id="novaSenha" 
+                                class="form-control" 
+                                placeholder="Mínimo 8 caracteres"
+                                required
+                                oninput="validarSenha()"
+                            >
+                            <button 
+                                type="button" 
+                                class="password-toggle" 
+                                onclick="togglePassword('novaSenha')"
+                            >
+                                👁️
+                            </button>
+                        </div>
+                        <div id="senhaRequisitos" style="margin-top: 8px; font-size: 12px;"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="confirmarSenha">Confirmar Nova Senha *</label>
+                        <div class="password-wrapper">
+                            <input 
+                                type="password" 
+                                id="confirmarSenha" 
+                                class="form-control" 
+                                placeholder="Digite novamente"
+                                required
+                                oninput="verificarConfirmacao()"
+                            >
+                            <button 
+                                type="button" 
+                                class="password-toggle" 
+                                onclick="togglePassword('confirmarSenha')"
+                            >
+                                👁️
+                            </button>
+                        </div>
+                        <div id="confirmacaoStatus" style="margin-top: 8px; font-size: 12px;"></div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-success btn-block btn-lg" id="btnTrocar">
+                        Atualizar Senha
+                    </button>
+                </form>
+            </div>
+            
+            <div class="login-footer">
+                <p style="font-size: 12px; color: var(--gray-600);">
+                    Requisitos de senha: mínimo 8 caracteres com letras maiúsculas, minúsculas, números e símbolos
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bcryptjs/2.4.3/bcrypt.min.js"></script>
+    <script src="assets/js/config.js"></script>
+    <script src="assets/js/auth.js"></script>
+    <script src="assets/js/main.js"></script>
+    
+    <script>
+        // Verificar se usuário está autenticado
+        const usuario = obterSessao();
+        if (!usuario) {
+            window.location.href = 'index.html';
+        }
+
+        // Alternar visibilidade da senha
+        function togglePassword(id) {
+            const input = document.getElementById(id);
+            input.type = input.type === 'password' ? 'text' : 'password';
+        }
+
+        // Validar força da senha
+        function validarSenha() {
+            const novaSenha = document.getElementById('novaSenha').value;
+            const container = document.getElementById('senhaRequisitos');
+            
+            if (!novaSenha) {
+                container.innerHTML = '';
+                return;
+            }
+
+            const validacao = validarForcaSenha(novaSenha);
+            
+            if (validacao.valida) {
+                container.innerHTML = '<span style="color: var(--success-color);">✓ Senha forte!</span>';
+            } else {
+                container.innerHTML = `
+                    <div style="color: var(--danger-color);">
+                        <div>✗ Requisitos não atendidos:</div>
+                        <ul style="margin: 4px 0 0 20px;">
+                            ${validacao.erros.map(erro => `<li>${erro}</li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+            }
+        }
+
+        // Verificar confirmação
+        function verificarConfirmacao() {
+            const novaSenha = document.getElementById('novaSenha').value;
+            const confirmarSenha = document.getElementById('confirmarSenha').value;
+            const container = document.getElementById('confirmacaoStatus');
+            
+            if (!confirmarSenha) {
+                container.innerHTML = '';
+                return;
+            }
+
+            if (novaSenha === confirmarSenha) {
+                container.innerHTML = '<span style="color: var(--success-color);">✓ Senhas coincidem</span>';
+            } else {
+                container.innerHTML = '<span style="color: var(--danger-color);">✗ Senhas não coincidem</span>';
+            }
+        }
+
+        // Processar troca de senha
+        async function handleTrocarSenha(event) {
+            event.preventDefault();
+            
+            const btnTrocar = document.getElementById('btnTrocar');
+            const senhaAtual = document.getElementById('senhaAtual').value;
+            const novaSenha = document.getElementById('novaSenha').value;
+            const confirmarSenha = document.getElementById('confirmarSenha').value;
+            
+            // Validar
+            if (!novaSenha || !confirmarSenha) {
+                mostrarAlerta('Preencha todos os campos obrigatórios', 'error');
+                return;
+            }
+
+            if (novaSenha !== confirmarSenha) {
+                mostrarAlerta('As senhas não coincidem', 'error');
+                return;
+            }
+
+            const validacao = validarForcaSenha(novaSenha);
+            if (!validacao.valida) {
+                mostrarAlerta('Senha não atende aos requisitos de segurança', 'error');
+                return;
+            }
+            
+            // Desabilitar botão
+            btnTrocar.disabled = true;
+            btnTrocar.textContent = 'Atualizando...';
+            
+            try {
+                const resultado = await trocarSenha(usuario.id, senhaAtual, novaSenha);
+                
+                if (resultado.sucesso) {
+                    mostrarAlerta('Senha atualizada com sucesso!', 'success');
+                    
+                    // Atualizar sessão
+                    usuario.precisa_trocar_senha = false;
+                    salvarSessao(usuario);
+                    
+                    // Redirecionar
+                    setTimeout(() => {
+                        redirecionarPorTipo();
+                    }, 1500);
+                } else {
+                    mostrarAlerta(resultado.erro || 'Erro ao atualizar senha', 'error');
+                    btnTrocar.disabled = false;
+                    btnTrocar.textContent = 'Atualizar Senha';
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                mostrarAlerta('Erro inesperado. Tente novamente.', 'error');
+                btnTrocar.disabled = false;
+                btnTrocar.textContent = 'Atualizar Senha';
+            }
+        }
+
+        // Mostrar alerta
+        function mostrarAlerta(mensagem, tipo) {
+            const container = document.getElementById('alertContainer');
+            const classe = tipo === 'error' ? 'alert-error' : tipo === 'success' ? 'alert-success' : 'alert-info';
+            
+            container.innerHTML = `
+                <div class="alert ${classe}">
+                    ${mensagem}
+                </div>
+            `;
+            
+            setTimeout(() => {
+                container.innerHTML = '';
+            }, 5000);
+        }
+
+        // Focus no primeiro campo
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('senhaAtual').focus();
+        });
+    </script>
+</body>
+</html>

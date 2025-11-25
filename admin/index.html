@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Administrativo - BI Portal Secure</title>
+    
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <link rel="stylesheet" href="../assets/css/admin.css">
+</head>
+<body>
+    <div class="admin-wrapper">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>🔐 BI Portal</h2>
+                <p>Administração</p>
+            </div>
+            
+            <nav class="sidebar-menu">
+                <a href="index.html" class="menu-item active">
+                    <span class="menu-item-icon">📊</span>
+                    Dashboard
+                </a>
+                <a href="usuarios.html" class="menu-item">
+                    <span class="menu-item-icon">👥</span>
+                    Usuários
+                </a>
+                <a href="relatorios.html" class="menu-item">
+                    <span class="menu-item-icon">📁</span>
+                    Relatórios
+                </a>
+                <a href="setores.html" class="menu-item">
+                    <span class="menu-item-icon">🏢</span>
+                    Setores
+                </a>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="user-avatar">
+                        <span class="usuario-inicial"></span>
+                    </div>
+                    <div class="user-details">
+                        <div class="user-name usuario-nome"></div>
+                        <div class="user-role">Administrador</div>
+                    </div>
+                </div>
+                <button class="btn btn-secondary btn-block btn-sm btn-logout">
+                    Sair
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="content-header">
+                <h1 class="content-title">Dashboard</h1>
+                <p class="content-subtitle">Visão geral do sistema</p>
+            </div>
+
+            <!-- Estatísticas -->
+            <div class="stats-grid" id="statsContainer">
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-title">Total de Usuários</div>
+                        <div class="stat-icon">👥</div>
+                    </div>
+                    <div class="stat-value" id="statUsuarios">0</div>
+                    <div class="stat-change">Usuários ativos no sistema</div>
+                </div>
+
+                <div class="stat-card success">
+                    <div class="stat-header">
+                        <div class="stat-title">Relatórios</div>
+                        <div class="stat-icon">📊</div>
+                    </div>
+                    <div class="stat-value" id="statRelatorios">0</div>
+                    <div class="stat-change">Relatórios disponíveis</div>
+                </div>
+
+                <div class="stat-card info">
+                    <div class="stat-header">
+                        <div class="stat-title">Acessos Hoje</div>
+                        <div class="stat-icon">📈</div>
+                    </div>
+                    <div class="stat-value" id="statAcessos">0</div>
+                    <div class="stat-change">Acessos nas últimas 24h</div>
+                </div>
+            </div>
+
+            <!-- Logs Recentes -->
+            <div class="card">
+                <div class="card-header">
+                    📋 Logs de Acesso Recentes
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table id="logsTable">
+                            <thead>
+                                <tr>
+                                    <th>Data/Hora</th>
+                                    <th>Usuário</th>
+                                    <th>Ação</th>
+                                    <th>Relatório</th>
+                                </tr>
+                            </thead>
+                            <tbody id="logsTableBody">
+                                <tr>
+                                    <td colspan="4" class="text-center">Carregando...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bcryptjs/2.4.3/bcrypt.min.js"></script>
+    <script src="../assets/js/config.js"></script>
+    <script src="../assets/js/auth.js"></script>
+    <script src="../assets/js/reports.js"></script>
+    <script src="../assets/js/admin.js"></script>
+    <script src="../assets/js/main.js"></script>
+    
+    <script>
+        // Proteger página (apenas admin)
+        if (!protegerPagina('admin')) {
+            // Já redirecionou
+        }
+
+        // Carregar dados ao iniciar
+        document.addEventListener('DOMContentLoaded', async () => {
+            const usuario = obterSessao();
+            if (usuario) {
+                // Atualizar inicial
+                const inicial = usuario.nome.charAt(0).toUpperCase();
+                document.querySelectorAll('.usuario-inicial').forEach(el => el.textContent = inicial);
+                
+                // Carregar estatísticas
+                await carregarEstatisticas();
+                
+                // Carregar logs
+                await carregarLogs();
+            }
+        });
+
+        // Carregar estatísticas
+        async function carregarEstatisticas() {
+            try {
+                const stats = await buscarEstatisticas();
+                
+                document.getElementById('statUsuarios').textContent = stats.totalUsuarios;
+                document.getElementById('statRelatorios').textContent = stats.totalRelatorios;
+                document.getElementById('statAcessos').textContent = stats.acessosHoje;
+            } catch (error) {
+                console.error('Erro ao carregar estatísticas:', error);
+            }
+        }
+
+        // Carregar logs
+        async function carregarLogs() {
+            const tbody = document.getElementById('logsTableBody');
+            
+            try {
+                const logs = await buscarLogs(20);
+                
+                if (logs.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" class="text-center">Nenhum log encontrado</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = logs.map(log => `
+                    <tr>
+                        <td>${formatarData(log.data_hora)}</td>
+                        <td>${log.usuarios?.nome || 'Usuário desconhecido'}</td>
+                        <td><span class="badge badge-info">${log.acao}</span></td>
+                        <td>${log.relatorios?.titulo || '-'}</td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                console.error('Erro ao carregar logs:', error);
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center">Erro ao carregar logs</td></tr>';
+            }
+        }
+    </script>
+</body>
+</html>

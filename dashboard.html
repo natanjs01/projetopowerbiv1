@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - BI Portal Secure</title>
+    
+    <link rel="stylesheet" href="assets/css/style.css">
+    <style>
+        body {
+            background: var(--gray-50);
+        }
+
+        .dashboard-header {
+            background: white;
+            padding: 20px 30px;
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 30px;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .header-title h1 {
+            font-size: 24px;
+            color: var(--gray-800);
+            margin-bottom: 4px;
+        }
+
+        .header-title p {
+            color: var(--gray-600);
+            font-size: 14px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .user-badge {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 16px;
+            background: var(--gray-100);
+            border-radius: var(--radius-full);
+        }
+
+        .user-badge-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+
+        .dashboard-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 30px 30px;
+        }
+
+        .reports-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 24px;
+        }
+
+        .report-card {
+            background: white;
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: all var(--transition-base);
+            cursor: pointer;
+        }
+
+        .report-card:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-4px);
+        }
+
+        .report-card-header {
+            padding: 20px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+        }
+
+        .report-card-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .report-card-category {
+            font-size: 13px;
+            opacity: 0.9;
+        }
+
+        .report-card-body {
+            padding: 20px;
+        }
+
+        .report-card-description {
+            color: var(--gray-700);
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 16px;
+        }
+
+        .report-card-info {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            font-size: 13px;
+            color: var(--gray-600);
+        }
+
+        .report-card-info-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+
+        .empty-state-title {
+            font-size: 24px;
+            color: var(--gray-800);
+            margin-bottom: 12px;
+        }
+
+        .empty-state-text {
+            color: var(--gray-600);
+        }
+
+        /* Modal de Relatório */
+        .report-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 9999;
+            padding: 20px;
+        }
+
+        .report-modal.show {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .report-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 0;
+            color: white;
+        }
+
+        .report-modal-title {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .report-modal-close {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: white;
+            font-size: 24px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all var(--transition-base);
+        }
+
+        .report-modal-close:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .report-modal-body {
+            flex: 1;
+            background: white;
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+        }
+
+        .report-modal-body iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-container {
+                padding: 0 20px 20px;
+            }
+
+            .reports-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header-content {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-header">
+        <div class="header-content">
+            <div class="header-title">
+                <h1>📊 Meus Relatórios</h1>
+                <p>Bem-vindo(a), <span class="usuario-nome"></span></p>
+            </div>
+            <div class="header-actions">
+                <div class="user-badge">
+                    <div class="user-badge-avatar"><span class="usuario-inicial"></span></div>
+                    <div>
+                        <div style="font-weight: 600; font-size: 14px;"><span class="usuario-nome"></span></div>
+                        <div style="font-size: 12px; color: var(--gray-600);"><span class="usuario-setor"></span></div>
+                    </div>
+                </div>
+                <button class="btn btn-secondary btn-logout">
+                    Sair
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="dashboard-container">
+        <div id="reportsContainer"></div>
+    </div>
+
+    <!-- Modal de Relatório -->
+    <div id="reportModal" class="report-modal">
+        <div class="report-modal-header">
+            <div class="report-modal-title" id="modalReportTitle"></div>
+            <button class="report-modal-close" onclick="fecharRelatorio()">✕</button>
+        </div>
+        <div class="report-modal-body">
+            <iframe id="reportIframe" allowfullscreen></iframe>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bcryptjs/2.4.3/bcrypt.min.js"></script>
+    <script src="assets/js/config.js"></script>
+    <script src="assets/js/auth.js"></script>
+    <script src="assets/js/reports.js"></script>
+    <script src="assets/js/main.js"></script>
+    
+    <script>
+        // Proteger página
+        if (!protegerPagina()) {
+            // Página já redirecionou
+        }
+
+        // Carregar relatórios ao iniciar
+        document.addEventListener('DOMContentLoaded', async () => {
+            const usuario = obterSessao();
+            if (usuario) {
+                // Atualizar inicial do avatar
+                const inicial = usuario.nome.charAt(0).toUpperCase();
+                document.querySelectorAll('.usuario-inicial').forEach(el => el.textContent = inicial);
+                
+                // Carregar relatórios
+                await carregarRelatorios();
+            }
+        });
+
+        // Carregar relatórios do usuário
+        async function carregarRelatorios() {
+            const container = document.getElementById('reportsContainer');
+            container.innerHTML = '<div class="text-center"><div class="loading-spinner"></div><p>Carregando relatórios...</p></div>';
+            
+            try {
+                const relatorios = await buscarRelatoriosUsuario();
+                
+                if (relatorios.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📊</div>
+                            <h2 class="empty-state-title">Nenhum relatório disponível</h2>
+                            <p class="empty-state-text">
+                                Você ainda não tem acesso a nenhum relatório.<br>
+                                Entre em contato com o administrador para solicitar acesso.
+                            </p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                // Renderizar relatórios
+                container.innerHTML = `
+                    <div class="reports-grid">
+                        ${relatorios.map(relatorio => `
+                            <div class="report-card" onclick="abrirRelatorio('${relatorio.id}', '${escapeHtml(relatorio.titulo)}', '${relatorio.report_id_powerbi}')">
+                                <div class="report-card-header">
+                                    <div class="report-card-title">${escapeHtml(relatorio.titulo)}</div>
+                                    <div class="report-card-category">${escapeHtml(relatorio.categoria || 'Geral')}</div>
+                                </div>
+                                <div class="report-card-body">
+                                    <div class="report-card-description">
+                                        ${escapeHtml(relatorio.descricao || 'Sem descrição')}
+                                    </div>
+                                    <div class="report-card-info">
+                                        <div class="report-card-info-item">
+                                            📁 Categoria: ${escapeHtml(relatorio.categoria || 'N/A')}
+                                        </div>
+                                        <div class="report-card-info-item">
+                                            📊 Fonte: ${escapeHtml(relatorio.data_source || 'N/A')}
+                                        </div>
+                                        <div class="report-card-info-item">
+                                            🔄 ${escapeHtml(relatorio.update_frequency || 'N/A')}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Erro ao carregar relatórios:', error);
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">⚠️</div>
+                        <h2 class="empty-state-title">Erro ao carregar relatórios</h2>
+                        <p class="empty-state-text">
+                            Ocorreu um erro ao buscar os relatórios.<br>
+                            Tente recarregar a página.
+                        </p>
+                        <button class="btn btn-primary" onclick="carregarRelatorios()" style="margin-top: 20px;">
+                            Tentar Novamente
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        // Abrir relatório em modal
+        function abrirRelatorio(id, titulo, reportId) {
+            const modal = document.getElementById('reportModal');
+            const iframe = document.getElementById('reportIframe');
+            const tituloEl = document.getElementById('modalReportTitle');
+            
+            tituloEl.textContent = titulo;
+            iframe.src = gerarURLPowerBI(reportId);
+            modal.classList.add('show');
+            
+            // Registrar visualização
+            registrarVisualizacao(id);
+        }
+
+        // Fechar relatório
+        function fecharRelatorio() {
+            const modal = document.getElementById('reportModal');
+            const iframe = document.getElementById('reportIframe');
+            
+            modal.classList.remove('show');
+            iframe.src = '';
+        }
+
+        // Escapar HTML para segurança
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Fechar modal com ESC
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                fecharRelatorio();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciar Usuários - BI Portal Secure</title>
+    
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <link rel="stylesheet" href="../assets/css/admin.css">
+</head>
+<body>
+    <div class="admin-wrapper">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>🔐 BI Portal</h2>
+                <p>Administração</p>
+            </div>
+            
+            <nav class="sidebar-menu">
+                <a href="index.html" class="menu-item">
+                    <span class="menu-item-icon">📊</span>
+                    Dashboard
+                </a>
+                <a href="usuarios.html" class="menu-item active">
+                    <span class="menu-item-icon">👥</span>
+                    Usuários
+                </a>
+                <a href="relatorios.html" class="menu-item">
+                    <span class="menu-item-icon">📁</span>
+                    Relatórios
+                </a>
+                <a href="setores.html" class="menu-item">
+                    <span class="menu-item-icon">🏢</span>
+                    Setores
+                </a>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="user-avatar">
+                        <span class="usuario-inicial"></span>
+                    </div>
+                    <div class="user-details">
+                        <div class="user-name usuario-nome"></div>
+                        <div class="user-role">Administrador</div>
+                    </div>
+                </div>
+                <button class="btn btn-secondary btn-block btn-sm btn-logout">
+                    Sair
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="content-header">
+                <h1 class="content-title">Gerenciar Usuários</h1>
+                <button class="btn btn-primary" onclick="abrirModalUsuario()">
+                    + Novo Usuário
+                </button>
+            </div>
+
+            <!-- Filtros -->
+            <div class="card">
+                <div class="card-body">
+                    <div class="filtros">
+                        <input type="text" id="filtroNome" placeholder="Buscar por nome ou e-mail..." class="input">
+                        <select id="filtroSetor" class="input">
+                            <option value="">Todos os setores</option>
+                        </select>
+                        <select id="filtroStatus" class="input">
+                            <option value="">Todos os status</option>
+                            <option value="true">Ativos</option>
+                            <option value="false">Inativos</option>
+                        </select>
+                        <button class="btn btn-secondary" onclick="carregarUsuarios()">
+                            Filtrar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabela de Usuários -->
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table id="usuariosTable">
+                            <thead>
+                                <tr>
+                                    <th>Nome</th>
+                                    <th>E-mail</th>
+                                    <th>Setor</th>
+                                    <th>Tipo</th>
+                                    <th>Status</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="usuariosTableBody">
+                                <tr>
+                                    <td colspan="6" class="text-center">Carregando...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Usuário -->
+    <div class="modal" id="modalUsuario">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalUsuarioTitulo">Novo Usuário</h3>
+                <button class="modal-close" onclick="fecharModalUsuario()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="formUsuario" onsubmit="salvarUsuario(event)">
+                    <input type="hidden" id="usuarioId" value="">
+                    
+                    <div class="form-group">
+                        <label for="usuarioNome">Nome Completo *</label>
+                        <input type="text" id="usuarioNome" class="input" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="usuarioEmail">E-mail *</label>
+                        <input type="email" id="usuarioEmail" class="input" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="usuarioSetor">Setor *</label>
+                        <select id="usuarioSetor" class="input" required>
+                            <option value="">Selecione...</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="usuarioTipo">Tipo de Usuário *</label>
+                        <select id="usuarioTipo" class="input" required>
+                            <option value="comum">Comum</option>
+                            <option value="admin">Administrador</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="usuarioAtivo" checked>
+                            Usuário Ativo
+                        </label>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" onclick="fecharModalUsuario()">
+                            Cancelar
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            Salvar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Resetar Senha -->
+    <div class="modal" id="modalResetSenha">
+        <div class="modal-content modal-sm">
+            <div class="modal-header">
+                <h3>Resetar Senha</h3>
+                <button class="modal-close" onclick="fecharModalReset()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>A senha temporária será gerada automaticamente e o usuário será obrigado a trocá-la no próximo acesso.</p>
+                
+                <div class="alert alert-warning">
+                    <strong>Atenção:</strong> Copie a senha gerada e envie ao usuário de forma segura.
+                </div>
+
+                <div id="senhaGeradaContainer" style="display:none;">
+                    <div class="form-group">
+                        <label>Senha Temporária Gerada:</label>
+                        <div style="display: flex; gap: 8px;">
+                            <input type="text" id="senhaGerada" class="input" readonly>
+                            <button type="button" class="btn btn-secondary" onclick="copiarSenha()">
+                                📋 Copiar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="fecharModalReset()">
+                        Fechar
+                    </button>
+                    <button type="button" class="btn btn-primary" id="btnResetarSenha" onclick="confirmarReset()">
+                        Gerar Nova Senha
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bcryptjs/2.4.3/bcrypt.min.js"></script>
+    <script src="../assets/js/config.js"></script>
+    <script src="../assets/js/auth.js"></script>
+    <script src="../assets/js/reports.js"></script>
+    <script src="../assets/js/admin.js"></script>
+    <script src="../assets/js/main.js"></script>
+    
+    <script>
+        let usuarioResetId = null;
+        let setoresDisponiveis = [];
+
+        // Proteger página (apenas admin)
+        if (!protegerPagina('admin')) {
+            // Já redirecionou
+        }
+
+        // Carregar dados ao iniciar
+        document.addEventListener('DOMContentLoaded', async () => {
+            const usuario = obterSessao();
+            if (usuario) {
+                const inicial = usuario.nome.charAt(0).toUpperCase();
+                document.querySelectorAll('.usuario-inicial').forEach(el => el.textContent = inicial);
+            }
+
+            await carregarSetores();
+            await carregarUsuarios();
+        });
+
+        // Carregar setores
+        async function carregarSetores() {
+            try {
+                const { data, error } = await supabase
+                    .from('setores')
+                    .select('*')
+                    .order('nome');
+
+                if (error) throw error;
+
+                setoresDisponiveis = data;
+
+                // Preencher selects
+                const optionsHTML = data.map(setor => 
+                    `<option value="${setor.id}">${setor.nome}</option>`
+                ).join('');
+
+                document.getElementById('filtroSetor').innerHTML = 
+                    '<option value="">Todos os setores</option>' + optionsHTML;
+                
+                document.getElementById('usuarioSetor').innerHTML = 
+                    '<option value="">Selecione...</option>' + optionsHTML;
+            } catch (error) {
+                console.error('Erro ao carregar setores:', error);
+            }
+        }
+
+        // Carregar usuários
+        async function carregarUsuarios() {
+            const tbody = document.getElementById('usuariosTableBody');
+            const filtroNome = document.getElementById('filtroNome').value.toLowerCase();
+            const filtroSetor = document.getElementById('filtroSetor').value;
+            const filtroStatus = document.getElementById('filtroStatus').value;
+
+            try {
+                let query = supabase
+                    .from('usuarios')
+                    .select('*, setores(nome)');
+
+                if (filtroSetor) {
+                    query = query.eq('setor_id', filtroSetor);
+                }
+
+                if (filtroStatus !== '') {
+                    query = query.eq('ativo', filtroStatus === 'true');
+                }
+
+                const { data, error } = await query.order('nome');
+
+                if (error) throw error;
+
+                // Filtro de nome/email no client-side
+                let usuarios = data;
+                if (filtroNome) {
+                    usuarios = data.filter(u => 
+                        u.nome.toLowerCase().includes(filtroNome) ||
+                        u.email.toLowerCase().includes(filtroNome)
+                    );
+                }
+
+                if (usuarios.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="text-center">Nenhum usuário encontrado</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = usuarios.map(usuario => `
+                    <tr>
+                        <td>${usuario.nome}</td>
+                        <td>${usuario.email}</td>
+                        <td>${usuario.setores?.nome || '-'}</td>
+                        <td>
+                            <span class="badge ${usuario.tipo_usuario === 'admin' ? 'badge-danger' : 'badge-info'}">
+                                ${usuario.tipo_usuario === 'admin' ? 'Admin' : 'Comum'}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge ${usuario.ativo ? 'badge-success' : 'badge-secondary'}">
+                                ${usuario.ativo ? 'Ativo' : 'Inativo'}
+                            </span>
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-secondary" onclick="editarUsuario('${usuario.id}')" title="Editar">
+                                ✏️
+                            </button>
+                            <button class="btn btn-sm btn-warning" onclick="abrirModalReset('${usuario.id}')" title="Resetar Senha">
+                                🔑
+                            </button>
+                            <button class="btn btn-sm ${usuario.ativo ? 'btn-danger' : 'btn-success'}" 
+                                    onclick="toggleAtivo('${usuario.id}', ${!usuario.ativo})" 
+                                    title="${usuario.ativo ? 'Desativar' : 'Ativar'}">
+                                ${usuario.ativo ? '🚫' : '✅'}
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                console.error('Erro ao carregar usuários:', error);
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center">Erro ao carregar usuários</td></tr>';
+            }
+        }
+
+        // Abrir modal para novo usuário
+        function abrirModalUsuario() {
+            document.getElementById('modalUsuarioTitulo').textContent = 'Novo Usuário';
+            document.getElementById('formUsuario').reset();
+            document.getElementById('usuarioId').value = '';
+            document.getElementById('usuarioAtivo').checked = true;
+            document.getElementById('modalUsuario').style.display = 'flex';
+        }
+
+        // Fechar modal usuário
+        function fecharModalUsuario() {
+            document.getElementById('modalUsuario').style.display = 'none';
+        }
+
+        // Editar usuário
+        async function editarUsuario(id) {
+            try {
+                const { data, error } = await supabase
+                    .from('usuarios')
+                    .select('*')
+                    .eq('id', id)
+                    .single();
+
+                if (error) throw error;
+
+                document.getElementById('modalUsuarioTitulo').textContent = 'Editar Usuário';
+                document.getElementById('usuarioId').value = data.id;
+                document.getElementById('usuarioNome').value = data.nome;
+                document.getElementById('usuarioEmail').value = data.email;
+                document.getElementById('usuarioSetor').value = data.setor_id || '';
+                document.getElementById('usuarioTipo').value = data.tipo_usuario;
+                document.getElementById('usuarioAtivo').checked = data.ativo;
+                
+                document.getElementById('modalUsuario').style.display = 'flex';
+            } catch (error) {
+                console.error('Erro ao carregar usuário:', error);
+                mostrarAlerta('Erro ao carregar dados do usuário', 'error');
+            }
+        }
+
+        // Salvar usuário
+        async function salvarUsuario(event) {
+            event.preventDefault();
+
+            const id = document.getElementById('usuarioId').value;
+            const nome = document.getElementById('usuarioNome').value;
+            const email = document.getElementById('usuarioEmail').value;
+            const setorId = document.getElementById('usuarioSetor').value || null;
+            const tipo = document.getElementById('usuarioTipo').value;
+            const ativo = document.getElementById('usuarioAtivo').checked;
+
+            try {
+                if (id) {
+                    // Atualizar usuário existente
+                    const { error } = await supabase
+                        .from('usuarios')
+                        .update({
+                            nome,
+                            email,
+                            setor_id: setorId,
+                            tipo_usuario: tipo,
+                            ativo
+                        })
+                        .eq('id', id);
+
+                    if (error) throw error;
+
+                    mostrarAlerta('Usuário atualizado com sucesso!', 'success');
+                } else {
+                    // Criar novo usuário
+                    const resultado = await criarUsuario(nome, email, setorId, tipo);
+                    
+                    if (resultado.success) {
+                        mostrarAlerta(
+                            `Usuário criado! Senha temporária: ${resultado.senhaTemporaria}. Copie e envie ao usuário.`,
+                            'success'
+                        );
+                    }
+                }
+
+                fecharModalUsuario();
+                await carregarUsuarios();
+            } catch (error) {
+                console.error('Erro ao salvar usuário:', error);
+                mostrarAlerta('Erro ao salvar usuário: ' + error.message, 'error');
+            }
+        }
+
+        // Toggle ativo/inativo
+        async function toggleAtivo(id, novoStatus) {
+            if (!confirm(`Deseja realmente ${novoStatus ? 'ativar' : 'desativar'} este usuário?`)) {
+                return;
+            }
+
+            try {
+                const { error } = await supabase
+                    .from('usuarios')
+                    .update({ ativo: novoStatus })
+                    .eq('id', id);
+
+                if (error) throw error;
+
+                mostrarAlerta('Status atualizado com sucesso!', 'success');
+                await carregarUsuarios();
+            } catch (error) {
+                console.error('Erro ao atualizar status:', error);
+                mostrarAlerta('Erro ao atualizar status', 'error');
+            }
+        }
+
+        // Abrir modal reset senha
+        function abrirModalReset(id) {
+            usuarioResetId = id;
+            document.getElementById('senhaGeradaContainer').style.display = 'none';
+            document.getElementById('senhaGerada').value = '';
+            document.getElementById('btnResetarSenha').style.display = 'block';
+            document.getElementById('modalResetSenha').style.display = 'flex';
+        }
+
+        // Fechar modal reset
+        function fecharModalReset() {
+            document.getElementById('modalResetSenha').style.display = 'none';
+            usuarioResetId = null;
+        }
+
+        // Confirmar reset de senha
+        async function confirmarReset() {
+            if (!usuarioResetId) return;
+
+            try {
+                const novaSenha = await resetarSenha(usuarioResetId);
+                
+                document.getElementById('senhaGerada').value = novaSenha;
+                document.getElementById('senhaGeradaContainer').style.display = 'block';
+                document.getElementById('btnResetarSenha').style.display = 'none';
+                
+                mostrarAlerta('Senha resetada com sucesso!', 'success');
+                await carregarUsuarios();
+            } catch (error) {
+                console.error('Erro ao resetar senha:', error);
+                mostrarAlerta('Erro ao resetar senha', 'error');
+            }
+        }
+
+        // Copiar senha
+        function copiarSenha() {
+            const input = document.getElementById('senhaGerada');
+            input.select();
+            document.execCommand('copy');
+            mostrarAlerta('Senha copiada para a área de transferência!', 'success');
+        }
+    </script>
+</body>
+</html>
