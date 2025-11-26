@@ -9,11 +9,20 @@
     <link rel="stylesheet" href="assets/css/login.css">
 </head>
 <body>
+    <!-- Background Slideshow -->
+    <div class="login-background">
+        <div class="login-background-image active" style="background-image: url('assets/img/lider1.jpg');"></div>
+        <div class="login-background-image" style="background-image: url('assets/img/lider2.jpg');"></div>
+        <div class="login-background-image" style="background-image: url('assets/img/lider3.jpg');"></div>
+        <div class="login-background-image" style="background-image: url('assets/img/lider4.jpg');"></div>
+        <div class="login-background-image" style="background-image: url('assets/img/lider5.jpg');"></div>
+    </div>
+
     <div class="login-container">
         <div class="login-card">
             <div class="login-header">
-                <h1>🔐 Trocar Senha</h1>
-                <p>Crie uma senha segura para sua conta</p>
+                <h1>🔐 Alterar Senha</h1>
+                <p>Grupo Líder - Portal BI</p>
             </div>
             
             <div class="login-body">
@@ -244,6 +253,16 @@
         // Focus no primeiro campo
         document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('senhaAtual').focus();
+            
+            // Slideshow automático do background
+            const images = document.querySelectorAll('.login-background-image');
+            let currentIndex = 0;
+            
+            setInterval(() => {
+                images[currentIndex].classList.remove('active');
+                currentIndex = (currentIndex + 1) % images.length;
+                images[currentIndex].classList.add('active');
+            }, 5000); // Troca a cada 5 segundos
         });
     </script>
 </body>

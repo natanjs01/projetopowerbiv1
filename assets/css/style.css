@@ -9,10 +9,10 @@
 }
 
 :root {
-    /* Cores Principais */
-    --primary-color: #667eea;
-    --primary-dark: #5a67d8;
-    --secondary-color: #764ba2;
+    /* Cores Principais - Grupo Líder */
+    --primary-color: #C41E3A;
+    --primary-dark: #8B1429;
+    --secondary-color: #D84315;
     --success-color: #48bb78;
     --warning-color: #ed8936;
     --danger-color: #f56565;
