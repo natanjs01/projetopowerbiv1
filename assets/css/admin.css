@@ -2,6 +2,132 @@
    ESTILOS DO PAINEL ADMINISTRATIVO
    ===================================================== */
 
+/* =====================================================
+   ESTILOS DE FORMULÁRIOS - INPUTS PROFISSIONAIS
+   ===================================================== */
+
+.input,
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="tel"],
+input[type="url"],
+input[type="search"],
+select,
+textarea {
+    width: 100%;
+    padding: 12px 16px;
+    font-size: 0.95rem;
+    font-family: inherit;
+    color: var(--gray-800);
+    background-color: #ffffff;
+    border: 1.5px solid var(--gray-300);
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    outline: none;
+    line-height: 1.5;
+}
+
+.input::placeholder,
+input::placeholder,
+textarea::placeholder {
+    color: var(--gray-400);
+    font-weight: 400;
+}
+
+.input:hover,
+input:hover,
+select:hover,
+textarea:hover {
+    border-color: var(--gray-400);
+    background-color: var(--gray-50);
+}
+
+.input:focus,
+input:focus,
+select:focus,
+textarea:focus {
+    border-color: var(--primary-color);
+    background-color: #ffffff;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.input:disabled,
+input:disabled,
+select:disabled,
+textarea:disabled {
+    background-color: var(--gray-100);
+    color: var(--gray-500);
+    cursor: not-allowed;
+    border-color: var(--gray-200);
+}
+
+/* Select customizado */
+select {
+    cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%234a5568' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 12px;
+    padding-right: 36px;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+}
+
+select::-ms-expand {
+    display: none;
+}
+
+/* Textarea */
+textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+/* Form group spacing */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group:last-child {
+    margin-bottom: 0;
+}
+
+/* =====================================================
+   FILTROS
+   ===================================================== */
+
+.filtros {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: stretch;
+}
+
+.filtros .input {
+    flex: 1;
+    min-width: 200px;
+}
+
+.filtros .btn {
+    flex-shrink: 0;
+    min-width: 120px;
+}
+
+/* Responsividade dos filtros */
+@media (max-width: 768px) {
+    .filtros {
+        flex-direction: column;
+    }
+    
+    .filtros .input,
+    .filtros .btn {
+        width: 100%;
+    }
+}
+
 .admin-wrapper {
     display: flex;
     min-height: 100vh;
@@ -227,12 +353,13 @@
 
 .modal-content {
     background: white;
-    border-radius: var(--radius-lg);
+    border-radius: 12px;
     max-width: 600px;
     width: 100%;
     max-height: 90vh;
     overflow-y: auto;
-    box-shadow: var(--shadow-xl);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+    border: 1px solid var(--gray-200);
     animation: modalSlideIn 0.3s ease;
 }
 
@@ -240,10 +367,18 @@
     max-width: 450px;
 }
 
+.modal-content.modal-md {
+    max-width: 550px;
+}
+
+.modal-content.modal-lg {
+    max-width: 800px;
+}
+
 @keyframes modalSlideIn {
     from {
         opacity: 0;
-        transform: scale(0.9);
+        transform: scale(0.95) translateY(-20px);
     }
     to {
         opacity: 1;
@@ -290,6 +425,13 @@
     padding: 24px;
 }
 
+.modal-subtitle {
+    margin: 4px 0 0 0;
+    font-size: 0.9rem;
+    color: var(--gray-600);
+    font-weight: 400;
+}
+
 .modal-footer {
     padding: 20px 24px;
     border-top: 1px solid var(--gray-200);
@@ -298,7 +440,98 @@
     justify-content: flex-end;
 }
 
-/* FORM STYLES */
+/* =====================================================
+   FORM STYLES MODERNOS
+   ===================================================== */
+
+.form-section {
+    margin-bottom: 24px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--gray-200);
+}
+
+.form-section:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.form-section-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--gray-800);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.form-label {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: var(--gray-700);
+}
+
+.label-text {
+    font-size: 0.9rem;
+}
+
+.label-required {
+    color: var(--danger-color);
+    font-weight: 600;
+}
+
+.form-help {
+    display: block;
+    margin-top: 4px;
+    font-size: 0.8rem;
+    color: var(--gray-500);
+    font-style: italic;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    cursor: pointer;
+    padding: 12px;
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-md);
+    transition: all 0.2s ease;
+}
+
+.checkbox-label:hover {
+    background: var(--gray-50);
+    border-color: var(--primary-color);
+}
+
+.checkbox-label input[type="checkbox"] {
+    margin-top: 3px;
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: var(--primary-color);
+}
+
+.checkbox-text {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.checkbox-text strong {
+    color: var(--gray-800);
+    font-size: 0.95rem;
+}
+
+.checkbox-text small {
+    color: var(--gray-600);
+    font-size: 0.85rem;
+}
+
 .form-row {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -394,6 +627,144 @@ select.form-control {
     .form-row {
         grid-template-columns: 1fr;
     }
+    
+    .reports-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* =====================================================
+   GRID DE RELATÓRIOS
+   ===================================================== */
+
+.reports-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    margin-top: 24px;
+}
+
+.report-card {
+    background: white;
+    border-radius: var(--radius-md);
+    padding: 20px;
+    border: 1px solid var(--gray-200);
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.report-card:hover {
+    box-shadow: var(--shadow-md);
+    border-color: var(--primary-color);
+    transform: translateY(-2px);
+}
+
+.report-card.inactive {
+    opacity: 0.6;
+    background: var(--gray-50);
+}
+
+.report-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+.report-header h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--gray-800);
+    margin: 0;
+    line-height: 1.3;
+    flex: 1;
+}
+
+.report-description {
+    color: var(--gray-600);
+    font-size: 0.9rem;
+    line-height: 1.5;
+    margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+.report-meta {
+    padding: 8px 0;
+    border-top: 1px solid var(--gray-200);
+    border-bottom: 1px solid var(--gray-200);
+}
+
+.report-meta small {
+    color: var(--gray-500);
+    font-size: 0.8rem;
+    font-family: 'Courier New', monospace;
+}
+
+.report-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+.report-actions .btn {
+    flex: 1;
+    min-width: fit-content;
+    white-space: nowrap;
+    font-size: 0.85rem;
+    padding: 6px 10px;
+}
+
+/* Badges */
+.badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.badge-success {
+    background: var(--success-color);
+    color: white;
+}
+
+.badge-secondary {
+    background: var(--gray-400);
+    color: white;
+}
+
+.badge-warning {
+    background: var(--warning-color);
+    color: white;
+}
+
+.badge-danger {
+    background: var(--danger-color);
+    color: white;
+}
+
+/* Responsividade para relatórios */
+@media (max-width: 1200px) {
+    .reports-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .reports-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 /* =====================================================
@@ -434,3 +805,185 @@ select.form-control {
     border: 1px solid #bee5eb;
     color: #0c5460;
 }
+
+/* =====================================================
+   MODAL DE PERMISSÕES
+   ===================================================== */
+
+.permissions-tabs {
+    display: flex;
+    gap: 8px;
+    border-bottom: 2px solid var(--gray-200);
+    margin-bottom: 20px;
+}
+
+.tab-button {
+    background: transparent;
+    border: none;
+    padding: 12px 24px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--gray-600);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-bottom: 3px solid transparent;
+    position: relative;
+    bottom: -2px;
+}
+
+.tab-button:hover {
+    color: var(--primary-color);
+    background: var(--gray-50);
+}
+
+.tab-button.active {
+    color: var(--primary-color);
+    border-bottom-color: var(--primary-color);
+    font-weight: 600;
+}
+
+.tab-content {
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.search-box {
+    margin-bottom: 16px;
+}
+
+.search-box .input {
+    width: 100%;
+    padding: 12px 16px;
+    font-size: 0.95rem;
+}
+
+.permissions-list {
+    max-height: 400px;
+    overflow-y: auto;
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-md);
+    padding: 12px;
+    background: var(--gray-50);
+}
+
+.permissions-list:empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+    color: var(--gray-500);
+}
+
+.permission-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: white;
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-sm);
+    margin-bottom: 8px;
+    transition: all 0.2s ease;
+}
+
+.permission-item:hover {
+    border-color: var(--primary-color);
+    box-shadow: 0 2px 4px rgba(102, 126, 234, 0.1);
+}
+
+.permission-item:last-child {
+    margin-bottom: 0;
+}
+
+.permission-info {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.permission-icon {
+    width: 40px;
+    height: 40px;
+    background: var(--primary-color);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+.permission-details {
+    flex: 1;
+}
+
+.permission-name {
+    font-weight: 600;
+    color: var(--gray-800);
+    margin-bottom: 2px;
+}
+
+.permission-email {
+    font-size: 0.85rem;
+    color: var(--gray-600);
+}
+
+.permission-checkbox {
+    margin: 0;
+}
+
+.permission-checkbox input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    accent-color: var(--primary-color);
+}
+
+.loading-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    color: var(--gray-600);
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid var(--gray-200);
+    border-top-color: var(--primary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 16px;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.empty-state {
+    text-align: center;
+    padding: 40px;
+    color: var(--gray-500);
+}
+
+.empty-state p {
+    margin: 0;
+    font-size: 0.95rem;
+}
+

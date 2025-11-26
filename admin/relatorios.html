@@ -65,15 +65,12 @@
             <div class="card">
                 <div class="card-body">
                     <div class="filtros">
-                        <input type="text" id="filtroBusca" placeholder="Buscar por título ou descrição..." class="input">
+                        <input type="text" id="filtroBusca" placeholder="🔍 Buscar por título ou descrição..." class="input">
                         <select id="filtroStatus" class="input">
-                            <option value="">Todos os status</option>
-                            <option value="true">Ativos</option>
-                            <option value="false">Inativos</option>
+                            <option value="">🔘 Todos os status</option>
+                            <option value="true">✅ Ativos</option>
+                            <option value="false">❌ Inativos</option>
                         </select>
-                        <button class="btn btn-secondary" onclick="carregarRelatorios()">
-                            Filtrar
-                        </button>
                     </div>
                 </div>
             </div>
@@ -145,41 +142,58 @@
     <div class="modal" id="modalPermissoes">
         <div class="modal-content modal-lg">
             <div class="modal-header">
-                <h3 id="modalPermissoesTitulo">Gerenciar Permissões</h3>
+                <div>
+                    <h3 id="modalPermissoesTitulo">🔐 Permissões do Relatório</h3>
+                    <p style="margin: 4px 0 0 0; font-size: 0.9rem; color: var(--gray-600); font-weight: 400;">
+                        <span id="nomeRelatorioPermissoes"></span>
+                    </p>
+                </div>
                 <button class="modal-close" onclick="fecharModalPermissoes()">&times;</button>
             </div>
             <div class="modal-body">
-                <div class="alert alert-info">
-                    Selecione usuários e/ou setores que terão acesso a este relatório.
+                <div class="alert alert-info" style="margin-bottom: 24px;">
+                    <strong>ℹ️ Instruções:</strong> Selecione os usuários e/ou setores que terão acesso a este relatório. 
+                    As permissões são aplicadas imediatamente.
                 </div>
 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                    <!-- Usuários -->
-                    <div>
-                        <h4>Por Usuário</h4>
-                        <div class="form-group">
-                            <input type="text" id="buscaUsuario" class="input" placeholder="Buscar usuário...">
-                        </div>
-                        <div id="listaUsuarios" class="permissions-list">
-                            Carregando...
-                        </div>
-                    </div>
+                <div class="permissions-tabs">
+                    <button class="tab-button active" onclick="switchPermTab('usuarios')" id="tabUsuarios">
+                        👥 Por Usuário
+                    </button>
+                    <button class="tab-button" onclick="switchPermTab('setores')" id="tabSetores">
+                        🏢 Por Setor
+                    </button>
+                </div>
 
-                    <!-- Setores -->
-                    <div>
-                        <h4>Por Setor</h4>
-                        <div class="form-group">
-                            <input type="text" id="buscaSetor" class="input" placeholder="Buscar setor...">
-                        </div>
-                        <div id="listaSetores" class="permissions-list">
-                            Carregando...
+                <!-- Tab Usuários -->
+                <div id="tabContentUsuarios" class="tab-content active">
+                    <div class="search-box">
+                        <input type="text" id="buscaUsuario" class="input" placeholder="🔍 Buscar usuário por nome ou email...">
+                    </div>
+                    <div id="listaUsuarios" class="permissions-list">
+                        <div class="loading-state">
+                            <div class="spinner"></div>
+                            <p>Carregando usuários...</p>
                         </div>
                     </div>
                 </div>
 
-                <div class="modal-footer">
+                <!-- Tab Setores -->
+                <div id="tabContentSetores" class="tab-content" style="display: none;">
+                    <div class="search-box">
+                        <input type="text" id="buscaSetor" class="input" placeholder="🔍 Buscar setor...">
+                    </div>
+                    <div id="listaSetores" class="permissions-list">
+                        <div class="loading-state">
+                            <div class="spinner"></div>
+                            <p>Carregando setores...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer" style="margin-top: 24px;">
                     <button type="button" class="btn btn-secondary" onclick="fecharModalPermissoes()">
-                        Fechar
+                        ✓ Concluído
                     </button>
                 </div>
             </div>
@@ -213,6 +227,10 @@
             }
 
             await carregarRelatorios();
+            
+            // Event listeners para auto-filtro
+            document.getElementById('filtroBusca').addEventListener('input', carregarRelatorios);
+            document.getElementById('filtroStatus').addEventListener('change', carregarRelatorios);
 
             // Auto-extrair reportId quando colar iframe
             document.getElementById('relatorioIframe').addEventListener('input', function() {
@@ -483,8 +501,8 @@
                 .eq('id', relatorioId)
                 .single();
 
-            document.getElementById('modalPermissoesTitulo').textContent = 
-                `Permissões: ${relatorio?.titulo || 'Relatório'}`;
+            document.getElementById('nomeRelatorioPermissoes').textContent = 
+                relatorio?.titulo || 'Carregando...';
 
             await carregarUsuariosPermissoes();
             await carregarSetoresPermissoes();
@@ -492,10 +510,28 @@
             document.getElementById('modalPermissoes').style.display = 'flex';
         }
 
+        // Alternar entre tabs de permissões
+        function switchPermTab(tab) {
+            // Remover active de todos
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.style.display = 'none');
+            
+            // Ativar tab selecionada
+            if (tab === 'usuarios') {
+                document.getElementById('tabUsuarios').classList.add('active');
+                document.getElementById('tabContentUsuarios').style.display = 'block';
+            } else {
+                document.getElementById('tabSetores').classList.add('active');
+                document.getElementById('tabContentSetores').style.display = 'block';
+            }
+        }
+
         // Fechar modal permissões
         function fecharModalPermissoes() {
             document.getElementById('modalPermissoes').style.display = 'none';
             relatorioPermissoesId = null;
+            // Resetar para tab de usuários
+            switchPermTab('usuarios');
         }
 
         // Carregar usuários para permissões
@@ -525,19 +561,29 @@
 
                 const permissoesUsuarios = permissoes.map(p => p.usuario_id);
 
+                if (usuarios.length === 0) {
+                    lista.innerHTML = '<div class="empty-state"><p>Nenhum usuário ativo encontrado</p></div>';
+                    return;
+                }
+
                 lista.innerHTML = usuarios.map(usuario => {
                     const temPermissao = permissoesUsuarios.includes(usuario.id);
+                    const iniciais = usuario.nome.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+                    
                     return `
                         <div class="permission-item">
-                            <label>
-                                <input type="checkbox" 
-                                       ${temPermissao ? 'checked' : ''}
-                                       onchange="togglePermissaoUsuario('${usuario.id}', this.checked)">
-                                <div>
+                            <div class="permission-info">
+                                <div class="permission-icon">${iniciais}</div>
+                                <div class="permission-details">
                                     <div class="permission-name">${usuario.nome}</div>
                                     <div class="permission-email">${usuario.email}</div>
                                 </div>
-                            </label>
+                            </div>
+                            <div class="permission-checkbox">
+                                <input type="checkbox" 
+                                       ${temPermissao ? 'checked' : ''}
+                                       onchange="togglePermissaoUsuario('${usuario.id}', this.checked)">
+                            </div>
                         </div>
                     `;
                 }).join('');
@@ -548,7 +594,7 @@
                 });
             } catch (error) {
                 console.error('Erro ao carregar usuários:', error);
-                lista.innerHTML = '<p>Erro ao carregar usuários</p>';
+                lista.innerHTML = '<div class="empty-state"><p>❌ Erro ao carregar usuários</p></div>';
             }
         }
 
@@ -578,18 +624,29 @@
 
                 const permissoesSetores = permissoes.map(p => p.setor);
 
+                if (setores.length === 0) {
+                    lista.innerHTML = '<div class="empty-state"><p>Nenhum setor cadastrado</p></div>';
+                    return;
+                }
+
                 lista.innerHTML = setores.map(setor => {
                     const temPermissao = permissoesSetores.includes(setor.nome);
+                    const icone = '🏢';
+                    
                     return `
                         <div class="permission-item">
-                            <label>
+                            <div class="permission-info">
+                                <div class="permission-icon" style="background: var(--secondary-color);">${icone}</div>
+                                <div class="permission-details">
+                                    <div class="permission-name">${setor.nome}</div>
+                                    <div class="permission-email">Todos os usuários deste setor</div>
+                                </div>
+                            </div>
+                            <div class="permission-checkbox">
                                 <input type="checkbox" 
                                        ${temPermissao ? 'checked' : ''}
                                        onchange="togglePermissaoSetor('${setor.nome}', this.checked)">
-                                <div>
-                                    <div class="permission-name">${setor.nome}</div>
-                                </div>
-                            </label>
+                            </div>
                         </div>
                     `;
                 }).join('');

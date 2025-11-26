@@ -65,18 +65,15 @@
             <div class="card">
                 <div class="card-body">
                     <div class="filtros">
-                        <input type="text" id="filtroNome" placeholder="Buscar por nome ou e-mail..." class="input">
+                        <input type="text" id="filtroNome" placeholder="🔍 Buscar por nome ou e-mail..." class="input">
                         <select id="filtroSetor" class="input">
-                            <option value="">Todos os setores</option>
+                            <option value="">📁 Todos os setores</option>
                         </select>
                         <select id="filtroStatus" class="input">
-                            <option value="">Todos os status</option>
-                            <option value="true">Ativos</option>
-                            <option value="false">Inativos</option>
+                            <option value="">🔘 Todos os status</option>
+                            <option value="true">✅ Ativos</option>
+                            <option value="false">❌ Inativos</option>
                         </select>
-                        <button class="btn btn-secondary" onclick="carregarUsuarios()">
-                            Filtrar
-                        </button>
                     </div>
                 </div>
             </div>
@@ -110,45 +107,84 @@
 
     <!-- Modal Usuário -->
     <div class="modal" id="modalUsuario">
-        <div class="modal-content">
+        <div class="modal-content modal-md">
             <div class="modal-header">
-                <h3 id="modalUsuarioTitulo">Novo Usuário</h3>
+                <div>
+                    <h3 id="modalUsuarioTitulo">👤 Novo Usuário</h3>
+                    <p class="modal-subtitle">Preencha os dados do novo usuário</p>
+                </div>
                 <button class="modal-close" onclick="fecharModalUsuario()">&times;</button>
             </div>
             <div class="modal-body">
                 <form id="formUsuario" onsubmit="salvarUsuario(event)">
                     <input type="hidden" id="usuarioId" value="">
                     
-                    <div class="form-group">
-                        <label for="usuarioNome">Nome Completo *</label>
-                        <input type="text" id="usuarioNome" class="input" required>
+                    <!-- Informações Pessoais -->
+                    <div class="form-section">
+                        <h4 class="form-section-title">📋 Informações Pessoais</h4>
+                        
+                        <div class="form-group">
+                            <label for="usuarioNome" class="form-label">
+                                <span class="label-text">Nome Completo</span>
+                                <span class="label-required">*</span>
+                            </label>
+                            <input type="text" 
+                                   id="usuarioNome" 
+                                   class="input" 
+                                   placeholder="Digite o nome completo do usuário"
+                                   required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="usuarioEmail" class="form-label">
+                                <span class="label-text">E-mail</span>
+                                <span class="label-required">*</span>
+                            </label>
+                            <input type="email" 
+                                   id="usuarioEmail" 
+                                   class="input" 
+                                   placeholder="usuario@empresa.com"
+                                   required>
+                            <small class="form-help">O e-mail será usado para login no sistema</small>
+                        </div>
                     </div>
 
-                    <div class="form-group">
-                        <label for="usuarioEmail">E-mail *</label>
-                        <input type="email" id="usuarioEmail" class="input" required>
-                    </div>
+                    <!-- Configurações de Acesso -->
+                    <div class="form-section">
+                        <h4 class="form-section-title">⚙️ Configurações de Acesso</h4>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="usuarioSetor" class="form-label">
+                                    <span class="label-text">Setor</span>
+                                    <span class="label-required">*</span>
+                                </label>
+                                <select id="usuarioSetor" class="input" required>
+                                    <option value="">Selecione o setor...</option>
+                                </select>
+                            </div>
 
-                    <div class="form-group">
-                        <label for="usuarioSetor">Setor *</label>
-                        <select id="usuarioSetor" class="input" required>
-                            <option value="">Selecione...</option>
-                        </select>
-                    </div>
+                            <div class="form-group">
+                                <label for="usuarioTipo" class="form-label">
+                                    <span class="label-text">Tipo de Usuário</span>
+                                    <span class="label-required">*</span>
+                                </label>
+                                <select id="usuarioTipo" class="input" required>
+                                    <option value="comum">Comum</option>
+                                    <option value="admin">Administrador</option>
+                                </select>
+                            </div>
+                        </div>
 
-                    <div class="form-group">
-                        <label for="usuarioTipo">Tipo de Usuário *</label>
-                        <select id="usuarioTipo" class="input" required>
-                            <option value="comum">Comum</option>
-                            <option value="admin">Administrador</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label>
-                            <input type="checkbox" id="usuarioAtivo" checked>
-                            Usuário Ativo
-                        </label>
+                        <div class="form-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="usuarioAtivo" checked>
+                                <span class="checkbox-text">
+                                    <strong>Usuário Ativo</strong>
+                                    <small>Desmarque para desativar o acesso ao sistema</small>
+                                </span>
+                            </label>
+                        </div>
                     </div>
 
                     <div class="modal-footer">
@@ -156,7 +192,7 @@
                             Cancelar
                         </button>
                         <button type="submit" class="btn btn-primary">
-                            Salvar
+                            <span id="btnSalvarTexto">💾 Salvar Usuário</span>
                         </button>
                     </div>
                 </form>
@@ -266,6 +302,11 @@
 
             await carregarSetores();
             await carregarUsuarios();
+            
+            // Configurar filtros automáticos
+            document.getElementById('filtroNome').addEventListener('input', carregarUsuarios);
+            document.getElementById('filtroSetor').addEventListener('change', carregarUsuarios);
+            document.getElementById('filtroStatus').addEventListener('change', carregarUsuarios);
         });
 
         // Carregar setores
@@ -286,7 +327,7 @@
                 ).join('');
 
                 document.getElementById('filtroSetor').innerHTML = 
-                    '<option value="">Todos os setores</option>' + optionsHTML;
+                    '<option value="">📁 Todos os setores</option>' + optionsHTML;
                 
                 document.getElementById('usuarioSetor').innerHTML = 
                     '<option value="">Selecione...</option>' + optionsHTML;
@@ -371,7 +412,9 @@
 
         // Abrir modal para novo usuário
         function abrirModalUsuario() {
-            document.getElementById('modalUsuarioTitulo').textContent = 'Novo Usuário';
+            document.getElementById('modalUsuarioTitulo').innerHTML = '👤 Novo Usuário';
+            document.querySelector('.modal-subtitle').textContent = 'Preencha os dados do novo usuário';
+            document.getElementById('btnSalvarTexto').innerHTML = '💾 Salvar Usuário';
             document.getElementById('formUsuario').reset();
             document.getElementById('usuarioId').value = '';
             document.getElementById('usuarioAtivo').checked = true;
@@ -394,11 +437,13 @@
 
                 if (error) throw error;
 
-                document.getElementById('modalUsuarioTitulo').textContent = 'Editar Usuário';
+                document.getElementById('modalUsuarioTitulo').innerHTML = '✏️ Editar Usuário';
+                document.querySelector('.modal-subtitle').textContent = 'Atualize os dados do usuário';
+                document.getElementById('btnSalvarTexto').innerHTML = '💾 Atualizar Usuário';
                 document.getElementById('usuarioId').value = data.id;
                 document.getElementById('usuarioNome').value = data.nome;
                 document.getElementById('usuarioEmail').value = data.email;
-                document.getElementById('usuarioSetor').value = data.setor_id || '';
+                document.getElementById('usuarioSetor').value = data.setor || '';
                 document.getElementById('usuarioTipo').value = data.tipo_usuario;
                 document.getElementById('usuarioAtivo').checked = data.ativo;
                 
