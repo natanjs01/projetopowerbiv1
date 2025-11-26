@@ -3,7 +3,30 @@
 // =====================================================
 
 // Inicializar cliente Supabase
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+let supabase;
+
+// Função para inicializar Supabase de forma segura
+function initSupabase() {
+    if (typeof window.supabase === 'undefined') {
+        console.error('Supabase não carregado! Verifique a conexão CDN.');
+        return null;
+    }
+    
+    if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+        console.error('Credenciais do Supabase não configuradas!');
+        return null;
+    }
+    
+    try {
+        return window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    } catch (error) {
+        console.error('Erro ao inicializar Supabase:', error);
+        return null;
+    }
+}
+
+// Inicializar Supabase
+supabase = initSupabase();
 
 // =====================================================
 // FUNÇÕES DE AUTENTICAÇÃO
@@ -17,6 +40,14 @@ const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
  */
 async function fazerLogin(email, senha) {
     try {
+        // Verificar se Supabase foi inicializado
+        if (!supabase) {
+            supabase = initSupabase();
+            if (!supabase) {
+                throw new Error('Erro ao conectar com o banco de dados. Tente novamente.');
+            }
+        }
+        
         // Chamar função de login SHA256 no banco de dados
         const { data, error } = await supabase
             .rpc('fazer_login_sha256', {
