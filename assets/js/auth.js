@@ -17,30 +17,38 @@ const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
  */
 async function fazerLogin(email, senha) {
     try {
-        // Buscar usuário por email
-        const { data: usuario, error } = await supabase
-            .from('usuarios')
-            .select('*')
-            .eq('email', email)
-            .eq('ativo', true)
-            .single();
+        // Chamar função de login SHA256 no banco de dados
+        const { data, error } = await supabase
+            .rpc('fazer_login_sha256', {
+                p_email: email,
+                p_senha: senha
+            });
 
-        if (error || !usuario) {
+        if (error) {
+            console.error('Erro ao chamar fazer_login_sha256:', error);
             throw new Error(MENSAGENS.erro.loginInvalido);
         }
 
-        // Verificar senha usando bcrypt
-        const senhaCorreta = await verificarSenha(senha, usuario.senha_hash);
-        
-        if (!senhaCorreta) {
-            throw new Error(MENSAGENS.erro.loginInvalido);
+        // A função retorna um array, pegar primeiro resultado
+        const resultado = Array.isArray(data) ? data[0] : data;
+
+        console.log('Resultado do login:', resultado);
+
+        if (!resultado || !resultado.sucesso) {
+            throw new Error(resultado?.mensagem || MENSAGENS.erro.loginInvalido);
         }
 
-        // Atualizar último acesso
-        await supabase
-            .from('usuarios')
-            .update({ ultimo_acesso: new Date().toISOString() })
-            .eq('id', usuario.id);
+        console.log('Login bem-sucedido!');
+
+        // Montar objeto de usuário
+        const usuario = {
+            id: resultado.usuario_id,
+            nome: resultado.nome,
+            email: resultado.email,
+            tipo_usuario: resultado.tipo_usuario,
+            setor: resultado.setor,
+            precisa_trocar_senha: resultado.precisa_trocar_senha
+        };
 
         // Registrar log de acesso
         await registrarLog(usuario.id, null, 'LOGIN', { email });
@@ -85,34 +93,25 @@ async function trocarSenha(usuarioId, senhaAtual, novaSenha) {
             throw new Error(MENSAGENS.erro.senhaFraca);
         }
 
-        // Buscar usuário
-        const { data: usuario } = await supabase
-            .from('usuarios')
-            .select('senha_hash')
-            .eq('id', usuarioId)
-            .single();
+        // Chamar função SQL de trocar senha
+        const { data, error } = await supabase
+            .rpc('trocar_senha_sha256', {
+                p_usuario_id: usuarioId,
+                p_senha_atual: senhaAtual || null,
+                p_nova_senha: novaSenha
+            });
 
-        // Verificar senha atual (se fornecida)
-        if (senhaAtual) {
-            const senhaCorreta = await verificarSenha(senhaAtual, usuario.senha_hash);
-            if (!senhaCorreta) {
-                throw new Error('Senha atual incorreta');
-            }
+        if (error) {
+            console.error('Erro ao chamar trocar_senha_sha256:', error);
+            throw new Error('Erro ao atualizar senha');
         }
 
-        // Gerar hash da nova senha
-        const novoHash = await bcrypt.hash(novaSenha, 10);
+        // A função retorna um array
+        const resultado = Array.isArray(data) ? data[0] : data;
 
-        // Atualizar senha
-        const { error } = await supabase
-            .from('usuarios')
-            .update({ 
-                senha_hash: novoHash,
-                precisa_trocar_senha: false
-            })
-            .eq('id', usuarioId);
-
-        if (error) throw error;
+        if (!resultado || !resultado.sucesso) {
+            throw new Error(resultado?.mensagem || 'Erro ao atualizar senha');
+        }
 
         // Registrar log
         await registrarLog(usuarioId, null, 'TROCA_SENHA', {});
@@ -133,7 +132,9 @@ function fazerLogout() {
         registrarLog(usuario.id, null, 'LOGOUT', {});
     }
     limparSessao();
-    window.location.href = '../index.html';
+    // Detecta se está na pasta admin ou na raiz
+    const isAdminPage = window.location.pathname.includes('/admin/');
+    window.location.href = isAdminPage ? '../index.html' : 'index.html';
 }
 
 // =====================================================
@@ -221,15 +222,15 @@ function redirecionarPorTipo() {
 
     // Se precisa trocar senha
     if (usuario.precisa_trocar_senha) {
-        window.location.href = '../trocar-senha.html';
+        window.location.href = 'trocar-senha.html';
         return;
     }
 
     // Redirecionar por tipo
     if (usuario.tipo_usuario === 'admin') {
-        window.location.href = '../admin/index.html';
+        window.location.href = 'admin/index.html';
     } else {
-        window.location.href = '../dashboard.html';
+        window.location.href = 'dashboard.html';
     }
 }
 
@@ -249,13 +250,13 @@ function protegerPagina(tipoRequerido = null) {
     // Requer admin
     if (tipoRequerido === 'admin' && usuario.tipo_usuario !== 'admin') {
         alert(MENSAGENS.erro.semPermissao);
-        window.location.href = '../dashboard.html';
+        window.location.href = 'dashboard.html';
         return false;
     }
 
     // Precisa trocar senha
     if (usuario.precisa_trocar_senha && !window.location.href.includes('trocar-senha')) {
-        window.location.href = '../trocar-senha.html';
+        window.location.href = 'trocar-senha.html';
         return false;
     }
 

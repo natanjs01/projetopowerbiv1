@@ -8,6 +8,7 @@
  * @returns {string|null} Report ID ou null
  */
 function extrairReportId(iframeCode) {
+    if (!iframeCode || typeof iframeCode !== 'string') return null;
     const match = iframeCode.match(VALIDACOES.reportId);
     return match ? match[0] : null;
 }

@@ -30,11 +30,18 @@ async function criarUsuario(dadosUsuario) {
     try {
         const usuario = obterSessao();
 
-        // Gerar senha padrão
+        // Gerar senha temporária
         const senhaTemporaria = gerarSenhaTemporaria();
-        const senhaHash = await bcrypt.hash(senhaTemporaria, 10);
 
-        const { data, error } = await supabase
+        // Criar hash SHA256 no cliente usando Web Crypto API
+        const encoder = new TextEncoder();
+        const data = encoder.encode(senhaTemporaria);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        const senhaHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+        // Inserir usuário diretamente
+        const { data: novoUsuario, error } = await supabase
             .from('usuarios')
             .insert({
                 email: dadosUsuario.email,
@@ -54,7 +61,7 @@ async function criarUsuario(dadosUsuario) {
         // Registrar log
         await registrarLog(usuario.id, null, 'CRIAR_USUARIO', { email: dadosUsuario.email });
 
-        return { sucesso: true, usuario: data, senhaTemporaria };
+        return { sucesso: true, usuario: novoUsuario, senhaTemporaria };
     } catch (error) {
         console.error('Erro ao criar usuário:', error);
         return { sucesso: false, erro: error.message };
@@ -125,7 +132,13 @@ async function resetarSenha(usuarioId) {
 
         // Gerar nova senha temporária
         const novaSenha = gerarSenhaTemporaria();
-        const senhaHash = await bcrypt.hash(novaSenha, 10);
+        
+        // Criar hash SHA256 usando Web Crypto API
+        const encoder = new TextEncoder();
+        const data = encoder.encode(novaSenha);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        const senhaHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 
         const { error } = await supabase
             .from('usuarios')
@@ -140,10 +153,10 @@ async function resetarSenha(usuarioId) {
         // Registrar log
         await registrarLog(usuario.id, null, 'RESETAR_SENHA', { usuarioId });
 
-        return { sucesso: true, novaSenha };
+        return novaSenha; // Retornar apenas a senha, não um objeto
     } catch (error) {
         console.error('Erro ao resetar senha:', error);
-        return { sucesso: false, erro: error.message };
+        throw error; // Lançar erro para ser capturado no try/catch do HTML
     }
 }
 

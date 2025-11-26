@@ -2,15 +2,8 @@
 // CONFIGURAÇÃO DO SUPABASE
 // =====================================================
 
-// IMPORTANTE: Substitua pelas suas credenciais do Supabase
-// Encontre em: Seu Projeto > Settings > API
-
-const SUPABASE_URL = 'SUA_URL_DO_SUPABASE_AQUI';
-const SUPABASE_ANON_KEY = 'SUA_CHAVE_ANONIMA_AQUI';
-
-// Exemplo:
-// const SUPABASE_URL = 'https://xxxxxxxxxxx.supabase.co';
-// const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...';
+const SUPABASE_URL = 'https://kzljxzhjkbpfksrlpplq.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt6bGp4emhqa2JwZmtzcmxwcGxxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwOTg2NDAsImV4cCI6MjA3OTY3NDY0MH0.a57zKTPgkLgxqwrP-hApjtKRDLBkWU7hGJEEpx_acds';
 
 // =====================================================
 // CONFIGURAÇÕES DO SISTEMA

@@ -202,6 +202,43 @@
         </div>
     </div>
 
+    <!-- Modal Senha Temporária -->
+    <div class="modal" id="modalSenhaTemporaria">
+        <div class="modal-content modal-sm">
+            <div class="modal-header">
+                <h3>✅ Usuário Criado com Sucesso!</h3>
+                <button class="modal-close" onclick="fecharModalSenhaTemporaria()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-success">
+                    <strong>Usuário criado com sucesso!</strong>
+                </div>
+                
+                <p>Copie a senha temporária abaixo e envie ao usuário de forma segura:</p>
+                
+                <div class="form-group">
+                    <label><strong>Senha Temporária:</strong></label>
+                    <div style="display: flex; gap: 8px;">
+                        <input type="text" id="senhaTemporariaGerada" class="input" readonly style="font-family: monospace; font-size: 16px; font-weight: bold; color: #2563eb;">
+                        <button type="button" class="btn btn-primary" onclick="copiarSenhaTemporaria()">
+                            📋 Copiar
+                        </button>
+                    </div>
+                </div>
+
+                <div class="alert alert-warning" style="margin-top: 16px;">
+                    <strong>⚠️ Importante:</strong> O usuário será obrigado a trocar esta senha no primeiro acesso.
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" onclick="fecharModalSenhaTemporaria()">
+                        Entendido
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bcryptjs/2.4.3/bcrypt.min.js"></script>
     <script src="../assets/js/config.js"></script>
@@ -243,9 +280,9 @@
 
                 setoresDisponiveis = data;
 
-                // Preencher selects
+                // Preencher selects com nome do setor como valor
                 const optionsHTML = data.map(setor => 
-                    `<option value="${setor.id}">${setor.nome}</option>`
+                    `<option value="${setor.nome}">${setor.nome}</option>`
                 ).join('');
 
                 document.getElementById('filtroSetor').innerHTML = 
@@ -268,10 +305,10 @@
             try {
                 let query = supabase
                     .from('usuarios')
-                    .select('*, setores(nome)');
+                    .select('*');
 
                 if (filtroSetor) {
-                    query = query.eq('setor_id', filtroSetor);
+                    query = query.eq('setor', filtroSetor);
                 }
 
                 if (filtroStatus !== '') {
@@ -300,7 +337,7 @@
                     <tr>
                         <td>${usuario.nome}</td>
                         <td>${usuario.email}</td>
-                        <td>${usuario.setores?.nome || '-'}</td>
+                        <td>${usuario.setor || '-'}</td>
                         <td>
                             <span class="badge ${usuario.tipo_usuario === 'admin' ? 'badge-danger' : 'badge-info'}">
                                 ${usuario.tipo_usuario === 'admin' ? 'Admin' : 'Comum'}
@@ -379,7 +416,7 @@
             const id = document.getElementById('usuarioId').value;
             const nome = document.getElementById('usuarioNome').value;
             const email = document.getElementById('usuarioEmail').value;
-            const setorId = document.getElementById('usuarioSetor').value || null;
+            const setor = document.getElementById('usuarioSetor').value || null;
             const tipo = document.getElementById('usuarioTipo').value;
             const ativo = document.getElementById('usuarioAtivo').checked;
 
@@ -391,7 +428,7 @@
                         .update({
                             nome,
                             email,
-                            setor_id: setorId,
+                            setor: setor,
                             tipo_usuario: tipo,
                             ativo
                         })
@@ -402,13 +439,27 @@
                     mostrarAlerta('Usuário atualizado com sucesso!', 'success');
                 } else {
                     // Criar novo usuário
-                    const resultado = await criarUsuario(nome, email, setorId, tipo);
+                    const resultado = await criarUsuario({
+                        nome: nome,
+                        email: email,
+                        setor: setor,
+                        tipo_usuario: tipo
+                    });
                     
-                    if (resultado.success) {
-                        mostrarAlerta(
-                            `Usuário criado! Senha temporária: ${resultado.senhaTemporaria}. Copie e envie ao usuário.`,
-                            'success'
-                        );
+                    if (resultado.sucesso) {
+                        // Fechar modal de criação
+                        fecharModalUsuario();
+                        
+                        // Recarregar lista de usuários
+                        await carregarUsuarios();
+                        
+                        // Abrir modal com senha temporária
+                        abrirModalSenhaTemporaria(resultado.senhaTemporaria);
+                        
+                        // Não executa o código após o try/catch para criação
+                        return;
+                    } else {
+                        throw new Error(resultado.erro);
                     }
                 }
 
@@ -457,6 +508,32 @@
             usuarioResetId = null;
         }
 
+        // Abrir modal senha temporária
+        function abrirModalSenhaTemporaria(senha) {
+            document.getElementById('senhaTemporariaGerada').value = senha;
+            document.getElementById('modalSenhaTemporaria').style.display = 'flex';
+        }
+
+        // Fechar modal senha temporária
+        function fecharModalSenhaTemporaria() {
+            document.getElementById('modalSenhaTemporaria').style.display = 'none';
+            document.getElementById('senhaTemporariaGerada').value = '';
+        }
+
+        // Copiar senha temporária
+        function copiarSenhaTemporaria() {
+            const senhaInput = document.getElementById('senhaTemporariaGerada');
+            senhaInput.select();
+            senhaInput.setSelectionRange(0, 99999); // Para dispositivos móveis
+            
+            navigator.clipboard.writeText(senhaInput.value).then(() => {
+                mostrarAlerta('Senha copiada para a área de transferência!', 'success');
+            }).catch(err => {
+                console.error('Erro ao copiar senha:', err);
+                mostrarAlerta('Erro ao copiar senha. Copie manualmente.', 'error');
+            });
+        }
+
         // Confirmar reset de senha
         async function confirmarReset() {
             if (!usuarioResetId) return;
@@ -482,6 +559,26 @@
             input.select();
             document.execCommand('copy');
             mostrarAlerta('Senha copiada para a área de transferência!', 'success');
+        }
+
+        // Mostrar alerta
+        function mostrarAlerta(mensagem, tipo = 'info') {
+            // Criar elemento de alerta
+            const alerta = document.createElement('div');
+            alerta.className = `alert alert-${tipo === 'error' ? 'danger' : tipo === 'success' ? 'success' : 'info'}`;
+            alerta.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 9999; max-width: 400px; animation: slideIn 0.3s;';
+            alerta.innerHTML = `
+                <strong>${tipo === 'error' ? '❌' : tipo === 'success' ? '✅' : 'ℹ️'}</strong>
+                ${mensagem}
+            `;
+            
+            document.body.appendChild(alerta);
+            
+            // Remover após 5 segundos
+            setTimeout(() => {
+                alerta.style.animation = 'slideOut 0.3s';
+                setTimeout(() => alerta.remove(), 300);
+            }, 5000);
         }
     </script>
 </body>

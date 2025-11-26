@@ -192,26 +192,42 @@
             const tbody = document.getElementById('setoresTableBody');
 
             try {
-                // Buscar setores com contagem de usuários
+                // Buscar setores
                 const { data: setores, error } = await supabase
                     .from('setores')
-                    .select(`
-                        *,
-                        usuarios:usuarios(count)
-                    `)
+                    .select('*')
                     .order('nome');
 
                 if (error) throw error;
 
-                todosSetores = setores;
+                // Buscar contagem de usuários por setor
+                const { data: usuarios } = await supabase
+                    .from('usuarios')
+                    .select('setor');
 
-                if (setores.length === 0) {
+                // Contar usuários por setor
+                const contagemPorSetor = {};
+                if (usuarios) {
+                    usuarios.forEach(u => {
+                        if (u.setor) {
+                            contagemPorSetor[u.setor] = (contagemPorSetor[u.setor] || 0) + 1;
+                        }
+                    });
+                }
+
+                // Adicionar contagem aos setores
+                todosSetores = setores.map(s => ({
+                    ...s,
+                    total_usuarios: contagemPorSetor[s.nome] || 0
+                }));
+
+                if (todosSetores.length === 0) {
                     tbody.innerHTML = '<tr><td colspan="4" class="text-center">Nenhum setor encontrado</td></tr>';
                     return;
                 }
 
-                tbody.innerHTML = setores.map(setor => {
-                    const numUsuarios = setor.usuarios[0]?.count || 0;
+                tbody.innerHTML = todosSetores.map(setor => {
+                    const numUsuarios = setor.total_usuarios || 0;
                     
                     return `
                         <tr>
@@ -221,7 +237,7 @@
                                     ${numUsuarios} ${numUsuarios === 1 ? 'usuário' : 'usuários'}
                                 </span>
                             </td>
-                            <td>${formatarData(setor.created_at)}</td>
+                            <td>${formatarData(setor.data_criacao)}</td>
                             <td>
                                 <button class="btn btn-sm btn-secondary" onclick="editarSetor('${setor.id}')" title="Editar">
                                     ✏️ Editar

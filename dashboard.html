@@ -260,7 +260,12 @@
     <div id="reportModal" class="report-modal">
         <div class="report-modal-header">
             <div class="report-modal-title" id="modalReportTitle"></div>
-            <button class="report-modal-close" onclick="fecharRelatorio()">✕</button>
+            <div style="display: flex; gap: 8px;">
+                <button class="btn btn-sm btn-secondary" onclick="toggleFullscreen()" title="Tela Cheia">
+                    🖥️ Tela Cheia
+                </button>
+                <button class="report-modal-close" onclick="fecharRelatorio()">✕</button>
+            </div>
         </div>
         <div class="report-modal-body">
             <iframe id="reportIframe" allowfullscreen></iframe>
@@ -381,8 +386,38 @@
             const modal = document.getElementById('reportModal');
             const iframe = document.getElementById('reportIframe');
             
+            // Sair de tela cheia se estiver ativo
+            if (document.fullscreenElement) {
+                document.exitFullscreen();
+            }
+            
             modal.classList.remove('show');
             iframe.src = '';
+        }
+
+        // Ativar/desativar tela cheia
+        function toggleFullscreen() {
+            const modal = document.getElementById('reportModal');
+            
+            if (!document.fullscreenElement) {
+                // Entrar em tela cheia
+                if (modal.requestFullscreen) {
+                    modal.requestFullscreen();
+                } else if (modal.webkitRequestFullscreen) { // Safari
+                    modal.webkitRequestFullscreen();
+                } else if (modal.msRequestFullscreen) { // IE11
+                    modal.msRequestFullscreen();
+                }
+            } else {
+                // Sair de tela cheia
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) { // Safari
+                    document.webkitExitFullscreen();
+                } else if (document.msExitFullscreen) { // IE11
+                    document.msExitFullscreen();
+                }
+            }
         }
 
         // Escapar HTML para segurança

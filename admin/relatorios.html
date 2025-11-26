@@ -216,14 +216,38 @@
 
             // Auto-extrair reportId quando colar iframe
             document.getElementById('relatorioIframe').addEventListener('input', function() {
-                const iframe = this.value;
-                const reportId = extrairReportId(iframe);
+                const iframeCode = this.value.trim();
+                
+                // Extrair Report ID
+                const reportId = extrairReportId(iframeCode);
                 
                 if (reportId) {
                     document.getElementById('reportIdValor').textContent = reportId;
                     document.getElementById('reportIdExtraido').style.display = 'block';
                 } else {
                     document.getElementById('reportIdExtraido').style.display = 'none';
+                }
+
+                // Auto-preencher título se estiver vazio
+                const tituloInput = document.getElementById('relatorioTitulo');
+                if (!tituloInput.value && iframeCode) {
+                    // Extrair título do atributo title do iframe
+                    const titleMatch = iframeCode.match(/title=["']([^"']+)["']/i);
+                    if (titleMatch && titleMatch[1]) {
+                        // Limpar o título (remover prefixos comuns)
+                        let titulo = titleMatch[1]
+                            .replace(/^BI\s*-\s*/i, '')
+                            .replace(/^PAINEL\s*/i, '')
+                            .replace(/^DASHBOARD\s*/i, '')
+                            .trim();
+                        tituloInput.value = titulo;
+                    }
+                }
+
+                // Auto-preencher descrição se estiver vazia
+                const descricaoInput = document.getElementById('relatorioDescricao');
+                if (!descricaoInput.value && reportId) {
+                    descricaoInput.value = `Relatório Power BI - ${reportId.substring(0, 8)}`;
                 }
             });
         });
@@ -271,9 +295,12 @@
                         </div>
                         <p class="report-description">${relatorio.descricao || 'Sem descrição'}</p>
                         <div class="report-meta">
-                            <small>Report ID: ${relatorio.report_id}</small>
+                            <small>Report ID: ${relatorio.report_id_powerbi}</small>
                         </div>
                         <div class="report-actions">
+                            <button class="btn btn-sm btn-primary" onclick="visualizarRelatorio('${relatorio.id}')" title="Visualizar Dashboard">
+                                👁️ Visualizar
+                            </button>
                             <button class="btn btn-sm btn-secondary" onclick="editarRelatorio('${relatorio.id}')" title="Editar">
                                 ✏️ Editar
                             </button>
@@ -309,6 +336,28 @@
             document.getElementById('modalRelatorio').style.display = 'none';
         }
 
+        // Visualizar relatório
+        async function visualizarRelatorio(id) {
+            try {
+                const { data, error } = await supabase
+                    .from('relatorios')
+                    .select('report_id_powerbi')
+                    .eq('id', id)
+                    .single();
+
+                if (error) throw error;
+
+                // Construir URL do Power BI
+                const powerBiUrl = `https://app.powerbi.com/reportEmbed?reportId=${data.report_id_powerbi}&autoAuth=true&ctid=9b7f8a4a-312e-4ce9-9391-103c1c9a32a1`;
+                
+                // Abrir em nova guia
+                window.open(powerBiUrl, '_blank');
+            } catch (error) {
+                console.error('Erro ao visualizar relatório:', error);
+                mostrarAlerta('Erro ao abrir relatório', 'error');
+            }
+        }
+
         // Editar relatório
         async function editarRelatorio(id) {
             try {
@@ -324,11 +373,11 @@
                 document.getElementById('relatorioId').value = data.id;
                 document.getElementById('relatorioTitulo').value = data.titulo;
                 document.getElementById('relatorioDescricao').value = data.descricao || '';
-                document.getElementById('relatorioIframe').value = data.iframe_code;
+                document.getElementById('relatorioIframe').value = data.iframe_completo;
                 document.getElementById('relatorioAtivo').checked = data.ativo;
                 
                 // Mostrar reportId extraído
-                document.getElementById('reportIdValor').textContent = data.report_id;
+                document.getElementById('reportIdValor').textContent = data.report_id_powerbi;
                 document.getElementById('reportIdExtraido').style.display = 'block';
                 
                 document.getElementById('modalRelatorio').style.display = 'flex';
@@ -356,6 +405,8 @@
             }
 
             try {
+                const usuario = obterSessao();
+                
                 if (id) {
                     // Atualizar relatório existente
                     const { error } = await supabase
@@ -363,9 +414,10 @@
                         .update({
                             titulo,
                             descricao,
-                            report_id: reportId,
-                            iframe_code: iframeCode,
-                            ativo
+                            report_id_powerbi: reportId,
+                            iframe_completo: iframeCode,
+                            ativo,
+                            data_atualizacao: new Date().toISOString()
                         })
                         .eq('id', id);
 
@@ -374,7 +426,19 @@
                     mostrarAlerta('Relatório atualizado com sucesso!', 'success');
                 } else {
                     // Criar novo relatório
-                    await adicionarRelatorio(titulo, descricao, reportId, iframeCode);
+                    const { error } = await supabase
+                        .from('relatorios')
+                        .insert({
+                            titulo,
+                            descricao,
+                            report_id_powerbi: reportId,
+                            iframe_completo: iframeCode,
+                            ativo,
+                            criado_por: usuario.id
+                        });
+
+                    if (error) throw error;
+
                     mostrarAlerta('Relatório criado com sucesso!', 'success');
                 }
 
@@ -506,22 +570,22 @@
                 // Buscar permissões existentes
                 const { data: permissoes, error: errorPermissoes } = await supabase
                     .from('permissoes')
-                    .select('setor_id')
+                    .select('setor')
                     .eq('relatorio_id', relatorioPermissoesId)
-                    .not('setor_id', 'is', null);
+                    .not('setor', 'is', null);
 
                 if (errorPermissoes) throw errorPermissoes;
 
-                const permissoesSetores = permissoes.map(p => p.setor_id);
+                const permissoesSetores = permissoes.map(p => p.setor);
 
                 lista.innerHTML = setores.map(setor => {
-                    const temPermissao = permissoesSetores.includes(setor.id);
+                    const temPermissao = permissoesSetores.includes(setor.nome);
                     return `
                         <div class="permission-item">
                             <label>
                                 <input type="checkbox" 
                                        ${temPermissao ? 'checked' : ''}
-                                       onchange="togglePermissaoSetor('${setor.id}', this.checked)">
+                                       onchange="togglePermissaoSetor('${setor.nome}', this.checked)">
                                 <div>
                                     <div class="permission-name">${setor.nome}</div>
                                 </div>
@@ -555,12 +619,12 @@
         }
 
         // Toggle permissão de setor
-        async function togglePermissaoSetor(setorId, conceder) {
+        async function togglePermissaoSetor(setorNome, conceder) {
             try {
                 if (conceder) {
-                    await concederPermissao(relatorioPermissoesId, null, setorId);
+                    await concederPermissao(relatorioPermissoesId, null, setorNome);
                 } else {
-                    await removerPermissao(relatorioPermissoesId, null, setorId);
+                    await removerPermissao(relatorioPermissoesId, null, setorNome);
                 }
             } catch (error) {
                 console.error('Erro ao atualizar permissão:', error);
@@ -569,7 +633,7 @@
         }
 
         // Remover permissão
-        async function removerPermissao(relatorioId, usuarioId, setorId) {
+        async function removerPermissao(relatorioId, usuarioId, setorNome) {
             let query = supabase
                 .from('permissoes')
                 .delete()
@@ -578,7 +642,7 @@
             if (usuarioId) {
                 query = query.eq('usuario_id', usuarioId);
             } else {
-                query = query.eq('setor_id', setorId);
+                query = query.eq('setor', setorNome);
             }
 
             const { error } = await query;
@@ -605,6 +669,26 @@
                 const texto = item.textContent.toLowerCase();
                 item.style.display = texto.includes(busca.toLowerCase()) ? 'block' : 'none';
             });
+        }
+
+        // Mostrar alerta
+        function mostrarAlerta(mensagem, tipo = 'info') {
+            // Criar elemento de alerta
+            const alerta = document.createElement('div');
+            alerta.className = `alert alert-${tipo === 'error' ? 'danger' : tipo === 'success' ? 'success' : 'info'}`;
+            alerta.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 9999; max-width: 400px; animation: slideIn 0.3s;';
+            alerta.innerHTML = `
+                <strong>${tipo === 'error' ? '❌' : tipo === 'success' ? '✅' : 'ℹ️'}</strong>
+                ${mensagem}
+            `;
+            
+            document.body.appendChild(alerta);
+            
+            // Remover após 5 segundos
+            setTimeout(() => {
+                alerta.style.animation = 'slideOut 0.3s';
+                setTimeout(() => alerta.remove(), 300);
+            }, 5000);
         }
     </script>
 </body>
