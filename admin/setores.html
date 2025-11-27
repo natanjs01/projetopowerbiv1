@@ -171,6 +171,35 @@
         let setorExcluirId = null;
         let todosSetores = [];
 
+        // Mostrar alerta
+        function mostrarAlerta(mensagem, tipo = 'info') {
+            // Criar elemento de alerta
+            const alerta = document.createElement('div');
+            alerta.className = `alert alert-${tipo === 'error' ? 'danger' : tipo === 'success' ? 'success' : 'info'}`;
+            alerta.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 9999; max-width: 400px; padding: 15px 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); animation: slideInRight 0.3s ease-out;';
+            
+            // Definir cores baseado no tipo
+            const cores = {
+                success: 'background: #10b981; color: white;',
+                error: 'background: #ef4444; color: white;',
+                info: 'background: #3b82f6; color: white;'
+            };
+            alerta.style.cssText += cores[tipo] || cores.info;
+            
+            alerta.innerHTML = `
+                <strong>${tipo === 'error' ? '❌' : tipo === 'success' ? '✅' : 'ℹ️'}</strong>
+                ${mensagem}
+            `;
+            
+            document.body.appendChild(alerta);
+            
+            // Remover após 5 segundos
+            setTimeout(() => {
+                alerta.style.animation = 'slideOutRight 0.3s ease-in';
+                setTimeout(() => alerta.remove(), 300);
+            }, 5000);
+        }
+
         // Proteger página (apenas admin)
         if (!protegerPagina('admin')) {
             // Já redirecionou
