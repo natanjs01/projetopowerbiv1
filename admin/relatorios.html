@@ -109,6 +109,43 @@
                     </div>
 
                     <div class="form-group">
+                        <label for="relatorioCategoria">📁 Categoria</label>
+                        <select id="relatorioCategoria" class="input">
+                            <option value="">Selecione uma categoria</option>
+                            <option value="Financeiro">Financeiro</option>
+                            <option value="Vendas">Vendas</option>
+                            <option value="Estoque">Estoque</option>
+                            <option value="Compras">Compras</option>
+                            <option value="RH">Recursos Humanos</option>
+                            <option value="Produção">Produção</option>
+                            <option value="Logística">Logística</option>
+                            <option value="Marketing">Marketing</option>
+                            <option value="Geral">Geral</option>
+                            <option value="Outros">Outros</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="relatorioFonte">📊 Fonte de Dados</label>
+                        <input type="text" id="relatorioFonte" class="input" placeholder="Ex: ERP TOTVS, SQL Server, Excel, etc.">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="relatorioFrequencia">🔄 Frequência de Atualização</label>
+                        <select id="relatorioFrequencia" class="input">
+                            <option value="">Selecione a frequência</option>
+                            <option value="Tempo Real">Tempo Real</option>
+                            <option value="Atualização Automática a cada 15 min">A cada 15 minutos</option>
+                            <option value="Atualização Automática a cada 30 min">A cada 30 minutos</option>
+                            <option value="Atualização Automática a cada hora">A cada hora</option>
+                            <option value="Atualização Diária">Diária</option>
+                            <option value="Atualização Semanal">Semanal</option>
+                            <option value="Atualização Mensal">Mensal</option>
+                            <option value="Sob Demanda">Sob Demanda</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
                         <label for="relatorioIframe">Cole o iframe completo do Power BI *</label>
                         <textarea id="relatorioIframe" class="input" rows="6" required 
                                   placeholder='<iframe title="..." width="..." height="..." src="https://app.powerbi.com/..." frameborder="0" allowFullScreen="true"></iframe>'></textarea>
@@ -394,6 +431,9 @@
                 document.getElementById('relatorioId').value = data.id;
                 document.getElementById('relatorioTitulo').value = data.titulo;
                 document.getElementById('relatorioDescricao').value = data.descricao || '';
+                document.getElementById('relatorioCategoria').value = data.categoria || '';
+                document.getElementById('relatorioFonte').value = data.data_source || '';
+                document.getElementById('relatorioFrequencia').value = data.update_frequency || '';
                 document.getElementById('relatorioIframe').value = data.iframe_completo;
                 document.getElementById('relatorioAtivo').checked = data.ativo;
                 
@@ -415,6 +455,9 @@
             const id = document.getElementById('relatorioId').value;
             const titulo = document.getElementById('relatorioTitulo').value;
             const descricao = document.getElementById('relatorioDescricao').value;
+            const categoria = document.getElementById('relatorioCategoria').value;
+            const dataSource = document.getElementById('relatorioFonte').value;
+            const updateFrequency = document.getElementById('relatorioFrequencia').value;
             const iframeCode = document.getElementById('relatorioIframe').value;
             const ativo = document.getElementById('relatorioAtivo').checked;
 
@@ -435,6 +478,9 @@
                         .update({
                             titulo,
                             descricao,
+                            categoria,
+                            data_source: dataSource,
+                            update_frequency: updateFrequency,
                             report_id_powerbi: reportId,
                             iframe_completo: iframeCode,
                             ativo,
@@ -452,6 +498,9 @@
                         .insert({
                             titulo,
                             descricao,
+                            categoria,
+                            data_source: dataSource,
+                            update_frequency: updateFrequency,
                             report_id_powerbi: reportId,
                             iframe_completo: iframeCode,
                             ativo,
