@@ -2,12 +2,12 @@
   "name": "Grupo Líder - Portal BI",
   "short_name": "Portal BI",
   "description": "Portal de Business Intelligence do Grupo Líder",
-  "start_url": "/index.html",
+  "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#2563eb",
   "orientation": "any",
-  "scope": "/",
+  "scope": "./",
   "icons": [
     {
       "src": "assets/img/pwa-icons/16.png",
@@ -78,7 +78,7 @@
       "name": "Dashboard",
       "short_name": "Dashboard",
       "description": "Acessar relatórios",
-      "url": "/dashboard.html",
+      "url": "./dashboard.html",
       "icons": [
         {
           "src": "assets/img/pwa-icons/192.png",
@@ -90,7 +90,7 @@
       "name": "Administração",
       "short_name": "Admin",
       "description": "Painel administrativo",
-      "url": "/admin/index.html",
+      "url": "./admin/index.html",
       "icons": [
         {
           "src": "assets/img/pwa-icons/192.png",
