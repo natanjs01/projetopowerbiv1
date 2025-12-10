@@ -1,8 +1,8 @@
 // Service Worker - PWA Online-Only Mode
-// Versão: 1.0.1
-// Modo: Sempre Online (sem cache offline)
+// Versão: 1.0.2
+// Modo: Sempre Online (sem cache offline) - HTML não interceptado
 
-const CACHE_NAME = 'portal-bi-v1.0.1';
+const CACHE_NAME = 'portal-bi-v1.0.2';
 const urlsToCache = [];
 
 // Instalação do Service Worker
@@ -52,7 +52,12 @@ self.addEventListener('fetch', (event) => {
         return;
     }
     
-    // Interceptar apenas requisições do próprio domínio
+    // NÃO interceptar arquivos HTML (evita tela preta no carregamento inicial)
+    if (event.request.mode === 'navigate' || url.pathname.endsWith('.html')) {
+        return;
+    }
+    
+    // Interceptar apenas requisições do próprio domínio (assets, CSS, JS, imagens)
     event.respondWith(
         fetch(event.request)
             .then((response) => {
