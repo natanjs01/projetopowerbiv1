@@ -5,6 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - BI Portal Secure</title>
     
+    <!-- PWA Meta Tags -->
+    <meta name="description" content="Portal de Business Intelligence do Grupo Líder">
+    <meta name="theme-color" content="#2563eb">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Portal BI">
+    
+    <!-- PWA Icons -->
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/img/pwa-icons/16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/img/pwa-icons/32.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="assets/img/pwa-icons/192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="assets/img/pwa-icons/512.png">
+    <link rel="apple-touch-icon" href="assets/img/pwa-icons/180.png">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    
     <!-- Estilos -->
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/login.css">
@@ -85,8 +103,7 @@
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- bcrypt.js - Biblioteca de criptografia LOCAL -->
-    <script src="assets/js/bcrypt.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bcryptjs/2.4.3/bcrypt.min.js"></script>
     <script src="assets/js/config.js"></script>
     <script src="assets/js/auth.js"></script>
     <script src="assets/js/main.js"></script>
@@ -177,6 +194,19 @@
                 images[currentIndex].classList.add('active');
             }, 5000); // Troca a cada 5 segundos
         });
+
+        // Registrar Service Worker (PWA)
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./service-worker.js')
+                    .then((registration) => {
+                        console.log('✅ Service Worker registrado:', registration.scope);
+                    })
+                    .catch((error) => {
+                        console.log('❌ Erro ao registrar Service Worker:', error);
+                    });
+            });
+        }
     </script>
 </body>
 </html>
