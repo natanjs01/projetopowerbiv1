@@ -109,10 +109,12 @@
     <script src="assets/js/main.js"></script>
     
     <script>
-        // Verificar se já está logado
-        if (estaAutenticado()) {
-            redirecionarPorTipo();
-        }
+        // Verificar se já está logado após todos os scripts carregarem
+        window.addEventListener('DOMContentLoaded', () => {
+            if (typeof estaAutenticado === 'function' && estaAutenticado()) {
+                redirecionarPorTipo();
+            }
+        });
 
         // Alternar visibilidade da senha
         function togglePassword() {
