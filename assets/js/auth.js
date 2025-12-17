@@ -2,9 +2,6 @@
 // SISTEMA DE AUTENTICAÇÃO
 // =====================================================
 
-// Inicializar cliente Supabase
-let supabase;
-
 // Função para inicializar Supabase de forma segura
 function initSupabase() {
     if (typeof window.supabase === 'undefined') {
@@ -25,8 +22,8 @@ function initSupabase() {
     }
 }
 
-// Inicializar Supabase
-supabase = initSupabase();
+// Inicializar cliente Supabase (sem let/const/var para evitar declaração duplicada)
+var supabase = initSupabase();
 
 // =====================================================
 // FUNÇÕES DE AUTENTICAÇÃO
