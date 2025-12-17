@@ -213,6 +213,12 @@ function limparFormulario(formId) {
  * Atualiza informações do usuário na interface
  */
 function atualizarInfoUsuario() {
+    // Verificar se a função obterSessao existe antes de usar
+    if (typeof obterSessao !== 'function') {
+        console.warn('Função obterSessao não está disponível ainda');
+        return;
+    }
+    
     const usuario = obterSessao();
     if (!usuario) return;
     
@@ -231,6 +237,14 @@ function atualizarInfoUsuario() {
  * Inicialização comum para todas as páginas
  */
 function inicializarPagina() {
+    // Verificar se as dependências estão carregadas
+    if (typeof obterSessao !== 'function') {
+        console.warn('Aguardando carregamento das dependências...');
+        // Tentar novamente após um pequeno delay
+        setTimeout(inicializarPagina, 100);
+        return;
+    }
+    
     // Atualizar info do usuário
     atualizarInfoUsuario();
     
@@ -239,7 +253,7 @@ function inicializarPagina() {
     btnLogout.forEach(btn => {
         btn.addEventListener('click', (e) => {
             e.preventDefault();
-            if (confirmar('Deseja realmente sair?')) {
+            if (confirm('Deseja realmente sair?')) {
                 fazerLogout();
             }
         });
