@@ -408,6 +408,231 @@
             }
         }
 
+        /* Calculadora */
+        .calculator-popup {
+            position: fixed !important;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            z-index: 999999 !important; /* Forçar ficar acima de tudo */
+            display: none;
+            min-width: 320px;
+            transition: box-shadow 0.2s;
+        }
+
+        /* Calculadora dentro de fullscreen */
+        :fullscreen .calculator-popup,
+        :-webkit-full-screen .calculator-popup,
+        :-moz-full-screen .calculator-popup,
+        :-ms-fullscreen .calculator-popup {
+            position: fixed !important;
+            z-index: 999999 !important;
+        }
+
+        .calculator-popup.show {
+            display: block !important;
+            animation: slideIn 0.3s ease;
+        }
+
+        .calculator-popup.dragging {
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5);
+            cursor: move;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -45%);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, -50%);
+            }
+        }
+
+        .calculator-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            cursor: move;
+            user-select: none;
+            padding: 4px;
+            margin: -4px -4px 12px -4px;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+
+        .calculator-header:hover {
+            background: var(--gray-50);
+        }
+
+        .calculator-header:active {
+            cursor: grabbing;
+        }
+
+        .calculator-header h3 {
+            font-size: 18px;
+            color: var(--gray-800);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 0;
+            pointer-events: none;
+        }
+
+        .calculator-header h3::before {
+            content: '⋮⋮';
+            font-size: 16px;
+            color: var(--gray-400);
+            letter-spacing: -2px;
+        }
+
+        .calculator-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: var(--gray-600);
+            cursor: pointer;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.2s;
+            pointer-events: auto; /* Garantir que o botão seja clicável */
+            z-index: 1000000; /* Maior que a calculadora */
+        }
+
+        .calculator-close:hover {
+            background: var(--gray-100);
+            color: var(--gray-800);
+        }
+
+        .calculator-close:active {
+            transform: scale(0.9);
+        }
+
+        .calculator-display {
+            background: var(--gray-100);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 16px;
+            text-align: right;
+            min-height: 60px;
+        }
+
+        .calculator-display-previous {
+            font-size: 14px;
+            color: var(--gray-600);
+            min-height: 20px;
+            word-wrap: break-word;
+        }
+
+        .calculator-display-current {
+            font-size: 32px;
+            font-weight: 600;
+            color: var(--gray-800);
+            min-height: 40px;
+            word-wrap: break-word;
+        }
+
+        .calculator-buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+
+        .calculator-btn {
+            padding: 20px;
+            font-size: 18px;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: var(--gray-100);
+            color: var(--gray-800);
+        }
+
+        .calculator-btn:hover {
+            background: var(--gray-200);
+            transform: scale(1.05);
+        }
+
+        .calculator-btn:active {
+            transform: scale(0.95);
+        }
+
+        .calculator-btn.operator {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .calculator-btn.operator:hover {
+            background: var(--primary-dark);
+        }
+
+        .calculator-btn.clear {
+            background: #ff3b30;
+            color: white;
+        }
+
+        .calculator-btn.clear:hover {
+            background: #d32f2f;
+        }
+
+        .calculator-btn.equals {
+            background: #34c759;
+            color: white;
+            grid-column: span 2;
+        }
+
+        .calculator-btn.equals:hover {
+            background: #2ba84a;
+        }
+
+        .calculator-btn.zero {
+            grid-column: span 2;
+        }
+
+        .calculator-overlay {
+            position: fixed !important;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: transparent; /* Removido escurecimento */
+            z-index: 999998 !important; /* Logo abaixo da calculadora */
+            display: none;
+            pointer-events: none; /* Permite clicar através do overlay */
+        }
+
+        .calculator-overlay.show {
+            display: block !important;
+        }
+
+        @media (max-width: 768px) {
+            .calculator-popup {
+                min-width: 280px;
+                max-width: 90%;
+            }
+
+            .calculator-btn {
+                padding: 16px;
+                font-size: 16px;
+            }
+
+            .calculator-display-current {
+                font-size: 28px;
+            }
+        }
+
         .report-modal.true-fullscreen .report-modal-body {
             padding: 0;
             border-radius: 0;
@@ -526,6 +751,10 @@
                     <span>🔄</span>
                     <span>Atualizar</span>
                 </button>
+                <button class="report-modal-btn" onclick="toggleCalculator()" title="Calculadora">
+                    <span>🔢</span>
+                    <span>Calculadora</span>
+                </button>
                 <button class="report-modal-btn" onclick="toggleFullscreen()" title="Tela cheia com bordas">
                     <span>🖥️</span>
                     <span>Tela Cheia</span>
@@ -548,6 +777,10 @@
                     <span class="icon">🔄</span>
                     <span>Atualizar</span>
                 </div>
+                <div class="floating-menu-item" onclick="toggleCalculator(); closeFloatingMenu();">
+                    <span class="icon">🔢</span>
+                    <span>Calculadora</span>
+                </div>
                 <div class="floating-menu-item" onclick="toggleTrueFullscreen(); closeFloatingMenu();">
                     <span class="icon">🖥️</span>
                     <span>Modo Normal</span>
@@ -562,6 +795,44 @@
         
         <div class="report-modal-body">
             <iframe id="reportIframe" allowfullscreen></iframe>
+        </div>
+    </div>
+
+    <!-- Calculadora Popup -->
+    <div class="calculator-overlay" id="calculatorOverlay"></div>
+    <div class="calculator-popup" id="calculatorPopup">
+        <div class="calculator-header" id="calculatorHeader">
+            <h3>🔢 Calculadora</h3>
+            <button class="calculator-close" onclick="toggleCalculator()">×</button>
+        </div>
+        <div class="calculator-display">
+            <div class="calculator-display-previous" id="calculatorPrevious"></div>
+            <div class="calculator-display-current" id="calculatorCurrent">0</div>
+        </div>
+        <div class="calculator-buttons">
+            <button class="calculator-btn clear" onclick="calculatorClear()">C</button>
+            <button class="calculator-btn" onclick="calculatorDelete()">⌫</button>
+            <button class="calculator-btn operator" onclick="calculatorOperator('/')">÷</button>
+            <button class="calculator-btn operator" onclick="calculatorOperator('*')">×</button>
+            
+            <button class="calculator-btn" onclick="calculatorNumber('7')">7</button>
+            <button class="calculator-btn" onclick="calculatorNumber('8')">8</button>
+            <button class="calculator-btn" onclick="calculatorNumber('9')">9</button>
+            <button class="calculator-btn operator" onclick="calculatorOperator('-')">−</button>
+            
+            <button class="calculator-btn" onclick="calculatorNumber('4')">4</button>
+            <button class="calculator-btn" onclick="calculatorNumber('5')">5</button>
+            <button class="calculator-btn" onclick="calculatorNumber('6')">6</button>
+            <button class="calculator-btn operator" onclick="calculatorOperator('+')">+</button>
+            
+            <button class="calculator-btn" onclick="calculatorNumber('1')">1</button>
+            <button class="calculator-btn" onclick="calculatorNumber('2')">2</button>
+            <button class="calculator-btn" onclick="calculatorNumber('3')">3</button>
+            <button class="calculator-btn operator" onclick="calculatorOperator('%')">%</button>
+            
+            <button class="calculator-btn zero" onclick="calculatorNumber('0')">0</button>
+            <button class="calculator-btn" onclick="calculatorDecimal()">.</button>
+            <button class="calculator-btn equals" onclick="calculatorEquals()">=</button>
         </div>
     </div>
 
@@ -845,6 +1116,322 @@
                 modal.classList.remove('true-fullscreen');
             }
         });
+
+        // ========== FUNÇÕES DA CALCULADORA ==========
+        let calculatorState = {
+            currentValue: '0',
+            previousValue: '',
+            operator: null,
+            waitingForOperand: false
+        };
+
+        // Variáveis para arrastar calculadora
+        let isDragging = false;
+        let dragOffsetX = 0;
+        let dragOffsetY = 0;
+
+        function toggleCalculator() {
+            const popup = document.getElementById('calculatorPopup');
+            const overlay = document.getElementById('calculatorOverlay');
+            
+            console.log('toggleCalculator chamado', popup, overlay); // Debug
+            
+            if (popup && popup.classList.contains('show')) {
+                // Fechar calculadora
+                popup.classList.remove('show');
+                overlay.classList.remove('show');
+                popup.style.display = 'none';
+                overlay.style.display = 'none';
+                console.log('Calculadora fechada');
+                return;
+            }
+            
+            if (popup && overlay) {
+                // Verificar se estamos em fullscreen (tela cheia ou tela total)
+                const modal = document.getElementById('reportModal');
+                const isInTrueFullscreen = modal && modal.classList.contains('true-fullscreen');
+                
+                const fullscreenElement = document.fullscreenElement || 
+                                         document.webkitFullscreenElement || 
+                                         document.mozFullScreenElement || 
+                                         document.msFullscreenElement;
+                
+                console.log('Modal true-fullscreen:', isInTrueFullscreen);
+                console.log('Browser fullscreen element:', fullscreenElement);
+                
+                if (fullscreenElement) {
+                    // Se estiver em fullscreen do navegador, adicionar dentro do elemento fullscreen
+                    console.log('Em fullscreen do navegador - adicionando ao elemento fullscreen');
+                    fullscreenElement.appendChild(overlay);
+                    fullscreenElement.appendChild(popup);
+                } else if (isInTrueFullscreen) {
+                    // Se estiver em modo "Tela Total" (sem fullscreen do navegador), adicionar ao modal
+                    console.log('Em modo Tela Total - adicionando ao modal');
+                    modal.appendChild(overlay);
+                    modal.appendChild(popup);
+                } else {
+                    // Modo normal - adicionar ao body
+                    console.log('Modo normal - adicionando ao body');
+                    document.body.appendChild(overlay);
+                    document.body.appendChild(popup);
+                }
+                
+                // Resetar posição ao centro quando abrir
+                popup.style.left = '50%';
+                popup.style.top = '50%';
+                popup.style.transform = 'translate(-50%, -50%)';
+                popup.style.position = 'fixed';
+                popup.style.zIndex = '999999';
+                popup.style.display = 'block';
+                
+                overlay.style.display = 'block';
+                overlay.style.zIndex = '999998';
+                
+                popup.classList.add('show');
+                overlay.classList.add('show');
+                
+                console.log('Calculadora aberta');
+                console.log('Parent:', popup.parentElement.tagName || popup.parentElement.className);
+                
+                // Inicializar eventos de arrastar após abrir
+                setTimeout(() => initializeDrag(), 100);
+            }
+        }
+
+        // Inicializar eventos de arrastar
+        function initializeDrag() {
+            const calculatorHeader = document.getElementById('calculatorHeader');
+            const calculatorPopup = document.getElementById('calculatorPopup');
+
+            if (!calculatorHeader || !calculatorPopup) return;
+
+            // Remover listeners antigos para evitar duplicatas
+            calculatorHeader.removeEventListener('mousedown', onDragStart);
+            calculatorHeader.removeEventListener('touchstart', onDragStart);
+            
+            // Adicionar novos listeners
+            calculatorHeader.addEventListener('mousedown', onDragStart);
+            calculatorHeader.addEventListener('touchstart', onDragStart, { passive: false });
+        }
+
+        function onDragStart(e) {
+            // Não arrastar se clicar no botão de fechar
+            if (e.target.classList.contains('calculator-close')) return;
+            
+            const calculatorPopup = document.getElementById('calculatorPopup');
+            const rect = calculatorPopup.getBoundingClientRect();
+            
+            // Calcular offset do clique em relação à posição da calculadora
+            if (e.type === 'touchstart') {
+                dragOffsetX = e.touches[0].clientX - rect.left;
+                dragOffsetY = e.touches[0].clientY - rect.top;
+            } else {
+                dragOffsetX = e.clientX - rect.left;
+                dragOffsetY = e.clientY - rect.top;
+            }
+
+            isDragging = true;
+            calculatorPopup.classList.add('dragging');
+            
+            // Remover animação de transform
+            calculatorPopup.style.transform = 'none';
+            calculatorPopup.style.left = rect.left + 'px';
+            calculatorPopup.style.top = rect.top + 'px';
+            
+            // Adicionar eventos de movimento
+            document.addEventListener('mousemove', onDrag);
+            document.addEventListener('touchmove', onDrag, { passive: false });
+            document.addEventListener('mouseup', onDragEnd);
+            document.addEventListener('touchend', onDragEnd);
+            
+            e.preventDefault();
+        }
+
+        function onDrag(e) {
+            if (!isDragging) return;
+            
+            e.preventDefault();
+            
+            const calculatorPopup = document.getElementById('calculatorPopup');
+            let clientX, clientY;
+            
+            if (e.type === 'touchmove') {
+                clientX = e.touches[0].clientX;
+                clientY = e.touches[0].clientY;
+            } else {
+                clientX = e.clientX;
+                clientY = e.clientY;
+            }
+            
+            // Calcular nova posição
+            let newLeft = clientX - dragOffsetX;
+            let newTop = clientY - dragOffsetY;
+            
+            // Limitar para não sair da tela
+            const rect = calculatorPopup.getBoundingClientRect();
+            const maxX = window.innerWidth - rect.width;
+            const maxY = window.innerHeight - rect.height;
+            
+            newLeft = Math.max(0, Math.min(newLeft, maxX));
+            newTop = Math.max(0, Math.min(newTop, maxY));
+            
+            calculatorPopup.style.left = newLeft + 'px';
+            calculatorPopup.style.top = newTop + 'px';
+        }
+
+        function onDragEnd(e) {
+            if (!isDragging) return;
+            
+            isDragging = false;
+            const calculatorPopup = document.getElementById('calculatorPopup');
+            calculatorPopup.classList.remove('dragging');
+            
+            // Remover eventos de movimento
+            document.removeEventListener('mousemove', onDrag);
+            document.removeEventListener('touchmove', onDrag);
+            document.removeEventListener('mouseup', onDragEnd);
+            document.removeEventListener('touchend', onDragEnd);
+        }
+
+        function updateCalculatorDisplay() {
+            const currentEl = document.getElementById('calculatorCurrent');
+            const previousEl = document.getElementById('calculatorPrevious');
+            
+            currentEl.textContent = calculatorState.currentValue;
+            
+            if (calculatorState.operator && calculatorState.previousValue) {
+                const operatorSymbol = {
+                    '+': '+',
+                    '-': '−',
+                    '*': '×',
+                    '/': '÷',
+                    '%': '%'
+                }[calculatorState.operator];
+                previousEl.textContent = `${calculatorState.previousValue} ${operatorSymbol}`;
+            } else {
+                previousEl.textContent = '';
+            }
+        }
+
+        function calculatorNumber(num) {
+            if (calculatorState.waitingForOperand) {
+                calculatorState.currentValue = num;
+                calculatorState.waitingForOperand = false;
+            } else {
+                calculatorState.currentValue = calculatorState.currentValue === '0' 
+                    ? num 
+                    : calculatorState.currentValue + num;
+            }
+            updateCalculatorDisplay();
+        }
+
+        function calculatorDecimal() {
+            if (calculatorState.waitingForOperand) {
+                calculatorState.currentValue = '0.';
+                calculatorState.waitingForOperand = false;
+            } else if (calculatorState.currentValue.indexOf('.') === -1) {
+                calculatorState.currentValue += '.';
+            }
+            updateCalculatorDisplay();
+        }
+
+        function calculatorClear() {
+            calculatorState = {
+                currentValue: '0',
+                previousValue: '',
+                operator: null,
+                waitingForOperand: false
+            };
+            updateCalculatorDisplay();
+        }
+
+        function calculatorDelete() {
+            if (calculatorState.currentValue.length > 1) {
+                calculatorState.currentValue = calculatorState.currentValue.slice(0, -1);
+            } else {
+                calculatorState.currentValue = '0';
+            }
+            updateCalculatorDisplay();
+        }
+
+        function calculatorOperator(nextOperator) {
+            const inputValue = parseFloat(calculatorState.currentValue);
+
+            if (calculatorState.previousValue === '') {
+                calculatorState.previousValue = calculatorState.currentValue;
+            } else if (calculatorState.operator) {
+                const currentValue = parseFloat(calculatorState.currentValue);
+                const previousValue = parseFloat(calculatorState.previousValue);
+                const result = performCalculation(previousValue, currentValue, calculatorState.operator);
+                
+                calculatorState.currentValue = String(result);
+                calculatorState.previousValue = String(result);
+            }
+
+            calculatorState.waitingForOperand = true;
+            calculatorState.operator = nextOperator;
+            updateCalculatorDisplay();
+        }
+
+        function calculatorEquals() {
+            const currentValue = parseFloat(calculatorState.currentValue);
+            const previousValue = parseFloat(calculatorState.previousValue);
+
+            if (calculatorState.operator && calculatorState.previousValue !== '') {
+                const result = performCalculation(previousValue, currentValue, calculatorState.operator);
+                
+                calculatorState.currentValue = String(result);
+                calculatorState.previousValue = '';
+                calculatorState.operator = null;
+                calculatorState.waitingForOperand = true;
+                updateCalculatorDisplay();
+            }
+        }
+
+        function performCalculation(firstValue, secondValue, operator) {
+            switch (operator) {
+                case '+':
+                    return firstValue + secondValue;
+                case '-':
+                    return firstValue - secondValue;
+                case '*':
+                    return firstValue * secondValue;
+                case '/':
+                    return firstValue / secondValue;
+                case '%':
+                    return (firstValue * secondValue) / 100;
+                default:
+                    return secondValue;
+            }
+        }
+
+        // Atalhos de teclado para calculadora
+        document.addEventListener('keydown', (e) => {
+            const popup = document.getElementById('calculatorPopup');
+            if (!popup.classList.contains('show')) return;
+
+            if (e.key >= '0' && e.key <= '9') {
+                calculatorNumber(e.key);
+            } else if (e.key === '.') {
+                calculatorDecimal();
+            } else if (e.key === '+' || e.key === '-' || e.key === '*' || e.key === '/') {
+                calculatorOperator(e.key);
+            } else if (e.key === '%') {
+                calculatorOperator('%');
+            } else if (e.key === 'Enter' || e.key === '=') {
+                e.preventDefault();
+                calculatorEquals();
+            } else if (e.key === 'Escape') {
+                toggleCalculator();
+            } else if (e.key === 'Backspace') {
+                e.preventDefault();
+                calculatorDelete();
+            } else if (e.key === 'c' || e.key === 'C') {
+                calculatorClear();
+            }
+        });
+
+        // ========== FIM FUNÇÕES DA CALCULADORA ==========
 
         // Registrar Service Worker (PWA)
         if ('serviceWorker' in navigator) {
