@@ -221,6 +221,35 @@
             align-items: center;
         }
 
+        .report-modal-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: white;
+            padding: 8px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all var(--transition-base);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .report-modal-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .report-modal-btn:active {
+            transform: translateY(0);
+        }
+
+        .report-modal-btn.refresh-btn:hover {
+            background: rgba(52, 199, 89, 0.8);
+        }
+
         .report-modal-close {
             background: rgba(255, 255, 255, 0.1);
             border: none;
@@ -239,6 +268,154 @@
         .report-modal-close:hover {
             background: rgba(255, 59, 48, 0.8);
             transform: rotate(90deg);
+        }
+
+        /* Modo True Fullscreen (sem bordas - ponta a ponta) */
+        .report-modal.true-fullscreen {
+            padding: 0;
+        }
+
+        .report-modal.true-fullscreen .report-modal-header {
+            display: none; /* Esconder completamente o header normal */
+        }
+
+        .report-modal.true-fullscreen .report-modal-body {
+            padding: 0;
+            border-radius: 0;
+            box-shadow: none;
+        }
+
+        .report-modal.true-fullscreen .report-modal-body iframe {
+            border-radius: 0;
+        }
+
+        /* Botão flutuante no canto para modo Tela Total */
+        .floating-controls {
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            z-index: 10000;
+            display: none;
+        }
+
+        .report-modal.true-fullscreen .floating-controls {
+            display: block;
+        }
+
+        .floating-btn {
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            transition: all var(--transition-base);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+        }
+
+        .floating-btn:hover {
+            background: rgba(0, 0, 0, 0.85);
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .floating-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Menu dropdown */
+        .floating-menu {
+            position: absolute;
+            top: 60px;
+            right: 0;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(20px);
+            border-radius: 12px;
+            padding: 8px;
+            min-width: 200px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+        }
+
+        .floating-controls.active .floating-menu {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .floating-menu-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            color: white;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all var(--transition-base);
+            font-size: 14px;
+            white-space: nowrap;
+        }
+
+        .floating-menu-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .floating-menu-item:active {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .floating-menu-item .icon {
+            font-size: 18px;
+            width: 24px;
+            text-align: center;
+        }
+
+        .floating-menu-divider {
+            height: 1px;
+            background: rgba(255, 255, 255, 0.2);
+            margin: 4px 8px;
+        }
+
+        .floating-menu-item.danger:hover {
+            background: rgba(255, 59, 48, 0.2);
+        }
+
+        @media (max-width: 768px) {
+            .floating-controls {
+                top: 12px;
+                right: 12px;
+            }
+
+            .floating-btn {
+                width: 44px;
+                height: 44px;
+                font-size: 18px;
+            }
+
+            .floating-menu {
+                min-width: 180px;
+                font-size: 13px;
+            }
+        }
+
+        .report-modal.true-fullscreen .report-modal-body {
+            padding: 0;
+            border-radius: 0;
+            box-shadow: none;
+        }
+
+        .report-modal.true-fullscreen .report-modal-body iframe {
+            border-radius: 0;
         }
 
         .report-modal-body {
@@ -280,6 +457,16 @@
             .report-modal-actions {
                 width: 100%;
                 justify-content: flex-end;
+                flex-wrap: wrap;
+            }
+
+            .report-modal-btn {
+                font-size: 12px;
+                padding: 6px 10px;
+            }
+
+            .report-modal-btn span:first-child {
+                display: none;
             }
 
             .report-modal-body {
@@ -335,12 +522,44 @@
         <div class="report-modal-header">
             <div class="report-modal-title" id="modalReportTitle"></div>
             <div class="report-modal-actions">
-                <button class="btn btn-sm btn-secondary" onclick="toggleFullscreen()" title="Tela Cheia" style="padding: 6px 12px; font-size: 13px;">
-                    🖥️ Tela Cheia
+                <button class="report-modal-btn refresh-btn" onclick="atualizarRelatorio()" title="Atualizar relatório">
+                    <span>🔄</span>
+                    <span>Atualizar</span>
+                </button>
+                <button class="report-modal-btn" onclick="toggleFullscreen()" title="Tela cheia com bordas">
+                    <span>🖥️</span>
+                    <span>Tela Cheia</span>
+                </button>
+                <button class="report-modal-btn" onclick="toggleTrueFullscreen()" title="Tela cheia sem bordas">
+                    <span>⛶</span>
+                    <span>Tela Total</span>
                 </button>
                 <button class="report-modal-close" onclick="fecharRelatorio()" title="Fechar (ESC)">✕</button>
             </div>
         </div>
+        
+        <!-- Controles flutuantes para modo Tela Total -->
+        <div class="floating-controls" id="floatingControls">
+            <button class="floating-btn" onclick="toggleFloatingMenu()" title="Menu de opções">
+                ⋮
+            </button>
+            <div class="floating-menu">
+                <div class="floating-menu-item" onclick="atualizarRelatorio(); closeFloatingMenu();">
+                    <span class="icon">🔄</span>
+                    <span>Atualizar</span>
+                </div>
+                <div class="floating-menu-item" onclick="toggleTrueFullscreen(); closeFloatingMenu();">
+                    <span class="icon">🖥️</span>
+                    <span>Modo Normal</span>
+                </div>
+                <div class="floating-menu-divider"></div>
+                <div class="floating-menu-item danger" onclick="fecharRelatorio();">
+                    <span class="icon">✕</span>
+                    <span>Fechar</span>
+                </div>
+            </div>
+        </div>
+        
         <div class="report-modal-body">
             <iframe id="reportIframe" allowfullscreen></iframe>
         </div>
@@ -465,13 +684,39 @@
                 document.exitFullscreen();
             }
             
+            // Fechar menu flutuante se estiver aberto
+            closeFloatingMenu();
+            
+            // Remover classe de true fullscreen
+            modal.classList.remove('true-fullscreen');
             modal.classList.remove('show');
             iframe.src = '';
         }
 
-        // Ativar/desativar tela cheia
+        // Atualizar/Recarregar relatório
+        function atualizarRelatorio() {
+            const iframe = document.getElementById('reportIframe');
+            const currentSrc = iframe.src;
+            
+            if (currentSrc) {
+                // Método mais seguro: remover src e readicionar
+                // Isso força o iframe a recarregar completamente
+                iframe.src = '';
+                
+                // Pequeno delay para garantir que o iframe foi limpo
+                setTimeout(() => {
+                    iframe.src = currentSrc;
+                    mostrarNotificacao('Relatório atualizado!', 'success', 2000);
+                }, 100);
+            }
+        }
+
+        // Ativar/desativar tela cheia (modo com bordas)
         function toggleFullscreen() {
             const modal = document.getElementById('reportModal');
+            
+            // Remover true fullscreen se estiver ativo
+            modal.classList.remove('true-fullscreen');
             
             if (!document.fullscreenElement) {
                 // Entrar em tela cheia
@@ -494,6 +739,68 @@
             }
         }
 
+        // Ativar/desativar TRUE fullscreen (modo sem bordas - ponta a ponta)
+        function toggleTrueFullscreen() {
+            const modal = document.getElementById('reportModal');
+            const isTrueFullscreen = modal.classList.contains('true-fullscreen');
+            
+            if (!isTrueFullscreen) {
+                // Ativar true fullscreen
+                modal.classList.add('true-fullscreen');
+                
+                // Tentar entrar em fullscreen também
+                if (!document.fullscreenElement) {
+                    if (modal.requestFullscreen) {
+                        modal.requestFullscreen();
+                    } else if (modal.webkitRequestFullscreen) { // Safari
+                        modal.webkitRequestFullscreen();
+                    } else if (modal.msRequestFullscreen) { // IE11
+                        modal.msRequestFullscreen();
+                    }
+                }
+                
+                mostrarNotificacao('Modo Tela Total ativado', 'info', 2000);
+            } else {
+                // Desativar true fullscreen
+                modal.classList.remove('true-fullscreen');
+                
+                // Sair de fullscreen
+                if (document.fullscreenElement) {
+                    if (document.exitFullscreen) {
+                        document.exitFullscreen();
+                    } else if (document.webkitExitFullscreen) { // Safari
+                        document.webkitExitFullscreen();
+                    } else if (document.msExitFullscreen) { // IE11
+                        document.msExitFullscreen();
+                    }
+                }
+            }
+        }
+
+        // Toggle do menu flutuante
+        function toggleFloatingMenu() {
+            const controls = document.getElementById('floatingControls');
+            controls.classList.toggle('active');
+        }
+
+        // Fechar menu flutuante
+        function closeFloatingMenu() {
+            const controls = document.getElementById('floatingControls');
+            controls.classList.remove('active');
+        }
+
+        // Fechar menu ao clicar fora
+        document.addEventListener('click', (e) => {
+            const controls = document.getElementById('floatingControls');
+            const floatingBtn = controls?.querySelector('.floating-btn');
+            
+            if (controls && controls.classList.contains('active')) {
+                if (!controls.contains(e.target)) {
+                    controls.classList.remove('active');
+                }
+            }
+        });
+
         // Escapar HTML para segurança
         function escapeHtml(text) {
             const div = document.createElement('div');
@@ -505,6 +812,37 @@
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 fecharRelatorio();
+            }
+        });
+
+        // Detectar mudanças no fullscreen
+        document.addEventListener('fullscreenchange', () => {
+            const modal = document.getElementById('reportModal');
+            // Se saiu do fullscreen, remover true-fullscreen também
+            if (!document.fullscreenElement) {
+                modal.classList.remove('true-fullscreen');
+            }
+        });
+
+        // Compatibilidade com outros navegadores
+        document.addEventListener('webkitfullscreenchange', () => {
+            const modal = document.getElementById('reportModal');
+            if (!document.webkitFullscreenElement) {
+                modal.classList.remove('true-fullscreen');
+            }
+        });
+
+        document.addEventListener('mozfullscreenchange', () => {
+            const modal = document.getElementById('reportModal');
+            if (!document.mozFullScreenElement) {
+                modal.classList.remove('true-fullscreen');
+            }
+        });
+
+        document.addEventListener('msfullscreenchange', () => {
+            const modal = document.getElementById('reportModal');
+            if (!document.msFullscreenElement) {
+                modal.classList.remove('true-fullscreen');
             }
         });
 
