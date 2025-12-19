@@ -1333,25 +1333,36 @@
         function formatNumberBR(value) {
             if (!value || value === '0') return '0';
             
-            const num = parseFloat(value);
-            
-            // Limitar a 8 casas decimais
-            let formatted = num.toFixed(Math.min(8, (value.split('.')[1] || '').length));
-            
-            // Remover zeros desnecessários à direita
-            formatted = formatted.replace(/\.?0+$/, '');
-            
-            // Separar parte inteira e decimal
-            const parts = formatted.split('.');
+            // Separar parte inteira e decimal ANTES de converter para número
+            const parts = value.split('.');
             let integerPart = parts[0];
-            const decimalPart = parts[1];
+            let decimalPart = parts[1];
             
-            // Adicionar pontos de milhares
+            // Remover sinal negativo temporariamente se existir
+            const isNegative = integerPart.startsWith('-');
+            if (isNegative) {
+                integerPart = integerPart.substring(1);
+            }
+            
+            // Adicionar pontos de milhares na parte inteira
             integerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
             
-            // Montar número final com vírgula decimal
+            // Adicionar sinal negativo de volta se necessário
+            if (isNegative) {
+                integerPart = '-' + integerPart;
+            }
+            
+            // Se houver parte decimal, limitar a 8 casas e remover zeros desnecessários APENAS da decimal
             if (decimalPart) {
-                return integerPart + ',' + decimalPart;
+                // Limitar a 8 casas decimais
+                decimalPart = decimalPart.substring(0, 8);
+                // Remover zeros à direita APENAS da parte decimal
+                decimalPart = decimalPart.replace(/0+$/, '');
+                
+                // Se ainda houver parte decimal, adicionar vírgula
+                if (decimalPart.length > 0) {
+                    return integerPart + ',' + decimalPart;
+                }
             }
             
             return integerPart;
@@ -1362,9 +1373,13 @@
                 calculatorState.currentValue = num;
                 calculatorState.waitingForOperand = false;
             } else {
-                calculatorState.currentValue = calculatorState.currentValue === '0' 
-                    ? num 
-                    : calculatorState.currentValue + num;
+                // Permitir adicionar zero depois de outros números
+                // Só substituir o zero inicial se for digitado um número diferente de zero
+                if (calculatorState.currentValue === '0' && num !== '0') {
+                    calculatorState.currentValue = num;
+                } else {
+                    calculatorState.currentValue = calculatorState.currentValue + num;
+                }
             }
             updateCalculatorDisplay();
         }
