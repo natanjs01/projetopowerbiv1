@@ -590,15 +590,10 @@
         .calculator-btn.equals {
             background: #34c759;
             color: white;
-            grid-column: span 2;
         }
 
         .calculator-btn.equals:hover {
             background: #2ba84a;
-        }
-
-        .calculator-btn.zero {
-            grid-column: span 2;
         }
 
         .calculator-overlay {
@@ -810,28 +805,34 @@
             <div class="calculator-display-current" id="calculatorCurrent">0</div>
         </div>
         <div class="calculator-buttons">
+            <button class="calculator-btn operator" onclick="calculatorOperator('%')">%</button>
+            <button class="calculator-btn" onclick="calculatorClearEntry()">CE</button>
             <button class="calculator-btn clear" onclick="calculatorClear()">C</button>
             <button class="calculator-btn" onclick="calculatorDelete()">⌫</button>
+            
+            <button class="calculator-btn" onclick="calculatorFunction('1/x')">1/x</button>
+            <button class="calculator-btn" onclick="calculatorFunction('x²')">x²</button>
+            <button class="calculator-btn" onclick="calculatorFunction('√')">√</button>
             <button class="calculator-btn operator" onclick="calculatorOperator('/')">÷</button>
-            <button class="calculator-btn operator" onclick="calculatorOperator('*')">×</button>
             
             <button class="calculator-btn" onclick="calculatorNumber('7')">7</button>
             <button class="calculator-btn" onclick="calculatorNumber('8')">8</button>
             <button class="calculator-btn" onclick="calculatorNumber('9')">9</button>
-            <button class="calculator-btn operator" onclick="calculatorOperator('-')">−</button>
+            <button class="calculator-btn operator" onclick="calculatorOperator('*')">×</button>
             
             <button class="calculator-btn" onclick="calculatorNumber('4')">4</button>
             <button class="calculator-btn" onclick="calculatorNumber('5')">5</button>
             <button class="calculator-btn" onclick="calculatorNumber('6')">6</button>
-            <button class="calculator-btn operator" onclick="calculatorOperator('+')">+</button>
+            <button class="calculator-btn operator" onclick="calculatorOperator('-')">−</button>
             
             <button class="calculator-btn" onclick="calculatorNumber('1')">1</button>
             <button class="calculator-btn" onclick="calculatorNumber('2')">2</button>
             <button class="calculator-btn" onclick="calculatorNumber('3')">3</button>
-            <button class="calculator-btn operator" onclick="calculatorOperator('%')">%</button>
+            <button class="calculator-btn operator" onclick="calculatorOperator('+')">+</button>
             
-            <button class="calculator-btn zero" onclick="calculatorNumber('0')">0</button>
-            <button class="calculator-btn" onclick="calculatorDecimal()">.</button>
+            <button class="calculator-btn" onclick="calculatorToggleSign()">+/−</button>
+            <button class="calculator-btn" onclick="calculatorNumber('0')">0</button>
+            <button class="calculator-btn" onclick="calculatorDecimal()">,</button>
             <button class="calculator-btn equals" onclick="calculatorEquals()">=</button>
         </div>
     </div>
@@ -1297,7 +1298,15 @@
             const currentEl = document.getElementById('calculatorCurrent');
             const previousEl = document.getElementById('calculatorPrevious');
             
-            currentEl.textContent = calculatorState.currentValue;
+            // Formatar número no padrão brasileiro com pontos de milhares
+            let displayValue = calculatorState.currentValue;
+            
+            // Se for um número, formatar com vírgula, pontos de milhares e limitar casas decimais
+            if (!isNaN(displayValue) && displayValue !== '') {
+                displayValue = formatNumberBR(displayValue);
+            }
+            
+            currentEl.textContent = displayValue || '0';
             
             if (calculatorState.operator && calculatorState.previousValue) {
                 const operatorSymbol = {
@@ -1307,10 +1316,45 @@
                     '/': '÷',
                     '%': '%'
                 }[calculatorState.operator];
-                previousEl.textContent = `${calculatorState.previousValue} ${operatorSymbol}`;
+                
+                // Formatar valor anterior também
+                let prevValue = calculatorState.previousValue;
+                if (!isNaN(prevValue) && prevValue !== '') {
+                    prevValue = formatNumberBR(prevValue);
+                }
+                
+                previousEl.textContent = `${prevValue} ${operatorSymbol}`;
             } else {
                 previousEl.textContent = '';
             }
+        }
+
+        // Função para formatar número no padrão brasileiro (1.234.567,89)
+        function formatNumberBR(value) {
+            if (!value || value === '0') return '0';
+            
+            const num = parseFloat(value);
+            
+            // Limitar a 8 casas decimais
+            let formatted = num.toFixed(Math.min(8, (value.split('.')[1] || '').length));
+            
+            // Remover zeros desnecessários à direita
+            formatted = formatted.replace(/\.?0+$/, '');
+            
+            // Separar parte inteira e decimal
+            const parts = formatted.split('.');
+            let integerPart = parts[0];
+            const decimalPart = parts[1];
+            
+            // Adicionar pontos de milhares
+            integerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+            
+            // Montar número final com vírgula decimal
+            if (decimalPart) {
+                return integerPart + ',' + decimalPart;
+            }
+            
+            return integerPart;
         }
 
         function calculatorNumber(num) {
@@ -1345,12 +1389,67 @@
             updateCalculatorDisplay();
         }
 
+        function calculatorClearEntry() {
+            // CE - Limpa apenas a entrada atual
+            calculatorState.currentValue = '0';
+            calculatorState.waitingForOperand = false;
+            updateCalculatorDisplay();
+        }
+
         function calculatorDelete() {
             if (calculatorState.currentValue.length > 1) {
                 calculatorState.currentValue = calculatorState.currentValue.slice(0, -1);
             } else {
                 calculatorState.currentValue = '0';
             }
+            updateCalculatorDisplay();
+        }
+
+        function calculatorToggleSign() {
+            // +/- - Inverte o sinal do número
+            if (calculatorState.currentValue !== '0') {
+                if (calculatorState.currentValue.startsWith('-')) {
+                    calculatorState.currentValue = calculatorState.currentValue.substring(1);
+                } else {
+                    calculatorState.currentValue = '-' + calculatorState.currentValue;
+                }
+                updateCalculatorDisplay();
+            }
+        }
+
+        function calculatorFunction(func) {
+            const currentValue = parseFloat(calculatorState.currentValue);
+            let result;
+
+            switch (func) {
+                case '1/x':
+                    if (currentValue !== 0) {
+                        result = 1 / currentValue;
+                    } else {
+                        alert('Não é possível dividir por zero');
+                        return;
+                    }
+                    break;
+                case 'x²':
+                    result = currentValue * currentValue;
+                    break;
+                case '√':
+                    if (currentValue >= 0) {
+                        result = Math.sqrt(currentValue);
+                    } else {
+                        alert('Não é possível calcular raiz de número negativo');
+                        return;
+                    }
+                    break;
+            }
+
+            // Limitar a 8 casas decimais
+            if (result.toString().includes('.')) {
+                result = parseFloat(result.toFixed(8));
+            }
+
+            calculatorState.currentValue = String(result);
+            calculatorState.waitingForOperand = true;
             updateCalculatorDisplay();
         }
 
@@ -1389,20 +1488,33 @@
         }
 
         function performCalculation(firstValue, secondValue, operator) {
+            let result;
             switch (operator) {
                 case '+':
-                    return firstValue + secondValue;
+                    result = firstValue + secondValue;
+                    break;
                 case '-':
-                    return firstValue - secondValue;
+                    result = firstValue - secondValue;
+                    break;
                 case '*':
-                    return firstValue * secondValue;
+                    result = firstValue * secondValue;
+                    break;
                 case '/':
-                    return firstValue / secondValue;
+                    result = firstValue / secondValue;
+                    break;
                 case '%':
-                    return (firstValue * secondValue) / 100;
+                    result = (firstValue * secondValue) / 100;
+                    break;
                 default:
-                    return secondValue;
+                    result = secondValue;
             }
+            
+            // Limitar a 8 casas decimais
+            if (result.toString().includes('.')) {
+                result = parseFloat(result.toFixed(8));
+            }
+            
+            return result;
         }
 
         // Atalhos de teclado para calculadora
@@ -1412,7 +1524,7 @@
 
             if (e.key >= '0' && e.key <= '9') {
                 calculatorNumber(e.key);
-            } else if (e.key === '.') {
+            } else if (e.key === '.' || e.key === ',') {
                 calculatorDecimal();
             } else if (e.key === '+' || e.key === '-' || e.key === '*' || e.key === '/') {
                 calculatorOperator(e.key);
