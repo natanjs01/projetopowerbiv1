@@ -1,0 +1,1577 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - BI Portal Secure</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="description" content="Portal de Business Intelligence do Grupo Líder">
+    <meta name="theme-color" content="#2563eb">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Portal BI">
+    
+    <!-- PWA Icons -->
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/img/pwa-icons/16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/img/pwa-icons/32.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="assets/img/pwa-icons/192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="assets/img/pwa-icons/512.png">
+    <link rel="apple-touch-icon" href="assets/img/pwa-icons/180.png">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    
+    <link rel="stylesheet" href="assets/css/style.css">
+    <style>
+        body {
+            background: var(--gray-50);
+        }
+
+        .dashboard-header {
+            background: white;
+            padding: 20px 30px;
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 30px;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .header-title h1 {
+            font-size: 24px;
+            color: var(--gray-800);
+            margin-bottom: 4px;
+        }
+
+        .header-title p {
+            color: var(--gray-600);
+            font-size: 14px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .user-badge {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 16px;
+            background: var(--gray-100);
+            border-radius: var(--radius-full);
+        }
+
+        .user-badge-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+
+        .dashboard-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 30px 30px;
+        }
+
+        .reports-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 24px;
+        }
+
+        .report-card {
+            background: white;
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: all var(--transition-base);
+            cursor: pointer;
+        }
+
+        .report-card:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-4px);
+        }
+
+        .report-card-header {
+            padding: 20px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+        }
+
+        .report-card-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .report-card-category {
+            font-size: 13px;
+            opacity: 0.9;
+        }
+
+        .report-card-body {
+            padding: 20px;
+        }
+
+        .report-card-description {
+            color: var(--gray-700);
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 16px;
+        }
+
+        .report-card-info {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            font-size: 13px;
+            color: var(--gray-600);
+        }
+
+        .report-card-info-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+
+        .empty-state-title {
+            font-size: 24px;
+            color: var(--gray-800);
+            margin-bottom: 12px;
+        }
+
+        .empty-state-text {
+            color: var(--gray-600);
+        }
+
+        /* Modal de Relatório */
+        .report-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 9999;
+            padding: 12px;
+        }
+
+        .report-modal.show {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .report-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            color: white;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px 8px 0 0;
+            backdrop-filter: blur(10px);
+            flex-shrink: 0;
+        }
+
+        .report-modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .report-modal-title::before {
+            content: "📊";
+            font-size: 20px;
+        }
+
+        .report-modal-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .report-modal-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: white;
+            padding: 8px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all var(--transition-base);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .report-modal-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .report-modal-btn:active {
+            transform: translateY(0);
+        }
+
+        .report-modal-btn.refresh-btn:hover {
+            background: rgba(52, 199, 89, 0.8);
+        }
+
+        .report-modal-close {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: white;
+            font-size: 20px;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all var(--transition-base);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .report-modal-close:hover {
+            background: rgba(255, 59, 48, 0.8);
+            transform: rotate(90deg);
+        }
+
+        /* Modo True Fullscreen (sem bordas - ponta a ponta) */
+        .report-modal.true-fullscreen {
+            padding: 0;
+        }
+
+        .report-modal.true-fullscreen .report-modal-header {
+            display: none; /* Esconder completamente o header normal */
+        }
+
+        .report-modal.true-fullscreen .report-modal-body {
+            padding: 0;
+            border-radius: 0;
+            box-shadow: none;
+        }
+
+        .report-modal.true-fullscreen .report-modal-body iframe {
+            border-radius: 0;
+        }
+
+        /* Botão flutuante no canto para modo Tela Total */
+        .floating-controls {
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            z-index: 10000;
+            display: none;
+        }
+
+        .report-modal.true-fullscreen .floating-controls {
+            display: block;
+        }
+
+        .floating-btn {
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            transition: all var(--transition-base);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+        }
+
+        .floating-btn:hover {
+            background: rgba(0, 0, 0, 0.85);
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .floating-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Menu dropdown */
+        .floating-menu {
+            position: absolute;
+            top: 60px;
+            right: 0;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(20px);
+            border-radius: 12px;
+            padding: 8px;
+            min-width: 200px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+        }
+
+        .floating-controls.active .floating-menu {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .floating-menu-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            color: white;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all var(--transition-base);
+            font-size: 14px;
+            white-space: nowrap;
+        }
+
+        .floating-menu-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .floating-menu-item:active {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .floating-menu-item .icon {
+            font-size: 18px;
+            width: 24px;
+            text-align: center;
+        }
+
+        .floating-menu-divider {
+            height: 1px;
+            background: rgba(255, 255, 255, 0.2);
+            margin: 4px 8px;
+        }
+
+        .floating-menu-item.danger:hover {
+            background: rgba(255, 59, 48, 0.2);
+        }
+
+        @media (max-width: 768px) {
+            .floating-controls {
+                top: 12px;
+                right: 12px;
+            }
+
+            .floating-btn {
+                width: 44px;
+                height: 44px;
+                font-size: 18px;
+            }
+
+            .floating-menu {
+                min-width: 180px;
+                font-size: 13px;
+            }
+        }
+
+        /* Calculadora */
+        .calculator-popup {
+            position: fixed !important;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            z-index: 999999 !important; /* Forçar ficar acima de tudo */
+            display: none;
+            min-width: 320px;
+            transition: box-shadow 0.2s;
+        }
+
+        /* Calculadora dentro de fullscreen */
+        :fullscreen .calculator-popup,
+        :-webkit-full-screen .calculator-popup,
+        :-moz-full-screen .calculator-popup,
+        :-ms-fullscreen .calculator-popup {
+            position: fixed !important;
+            z-index: 999999 !important;
+        }
+
+        .calculator-popup.show {
+            display: block !important;
+            animation: slideIn 0.3s ease;
+        }
+
+        .calculator-popup.dragging {
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5);
+            cursor: move;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -45%);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, -50%);
+            }
+        }
+
+        .calculator-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            cursor: move;
+            user-select: none;
+            padding: 4px;
+            margin: -4px -4px 12px -4px;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+
+        .calculator-header:hover {
+            background: var(--gray-50);
+        }
+
+        .calculator-header:active {
+            cursor: grabbing;
+        }
+
+        .calculator-header h3 {
+            font-size: 18px;
+            color: var(--gray-800);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 0;
+            pointer-events: none;
+        }
+
+        .calculator-header h3::before {
+            content: '⋮⋮';
+            font-size: 16px;
+            color: var(--gray-400);
+            letter-spacing: -2px;
+        }
+
+        .calculator-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: var(--gray-600);
+            cursor: pointer;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.2s;
+            pointer-events: auto; /* Garantir que o botão seja clicável */
+            z-index: 1000000; /* Maior que a calculadora */
+        }
+
+        .calculator-close:hover {
+            background: var(--gray-100);
+            color: var(--gray-800);
+        }
+
+        .calculator-close:active {
+            transform: scale(0.9);
+        }
+
+        .calculator-display {
+            background: var(--gray-100);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 16px;
+            text-align: right;
+            min-height: 60px;
+        }
+
+        .calculator-display-previous {
+            font-size: 14px;
+            color: var(--gray-600);
+            min-height: 20px;
+            word-wrap: break-word;
+        }
+
+        .calculator-display-current {
+            font-size: 32px;
+            font-weight: 600;
+            color: var(--gray-800);
+            min-height: 40px;
+            word-wrap: break-word;
+        }
+
+        .calculator-buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+
+        .calculator-btn {
+            padding: 20px;
+            font-size: 18px;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: var(--gray-100);
+            color: var(--gray-800);
+        }
+
+        .calculator-btn:hover {
+            background: var(--gray-200);
+            transform: scale(1.05);
+        }
+
+        .calculator-btn:active {
+            transform: scale(0.95);
+        }
+
+        .calculator-btn.operator {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .calculator-btn.operator:hover {
+            background: var(--primary-dark);
+        }
+
+        .calculator-btn.clear {
+            background: #ff3b30;
+            color: white;
+        }
+
+        .calculator-btn.clear:hover {
+            background: #d32f2f;
+        }
+
+        .calculator-btn.equals {
+            background: #34c759;
+            color: white;
+        }
+
+        .calculator-btn.equals:hover {
+            background: #2ba84a;
+        }
+
+        .calculator-overlay {
+            position: fixed !important;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: transparent; /* Removido escurecimento */
+            z-index: 999998 !important; /* Logo abaixo da calculadora */
+            display: none;
+            pointer-events: none; /* Permite clicar através do overlay */
+        }
+
+        .calculator-overlay.show {
+            display: block !important;
+        }
+
+        @media (max-width: 768px) {
+            .calculator-popup {
+                min-width: 280px;
+                max-width: 90%;
+            }
+
+            .calculator-btn {
+                padding: 16px;
+                font-size: 16px;
+            }
+
+            .calculator-display-current {
+                font-size: 28px;
+            }
+        }
+
+        .report-modal.true-fullscreen .report-modal-body {
+            padding: 0;
+            border-radius: 0;
+            box-shadow: none;
+        }
+
+        .report-modal.true-fullscreen .report-modal-body iframe {
+            border-radius: 0;
+        }
+
+        .report-modal-body {
+            flex: 1;
+            background: white;
+            border-radius: 0 0 8px 8px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            padding: 16px 12px 12px 12px; /* Espaçamento interno para dar respiro ao conteúdo */
+            display: flex;
+            flex-direction: column;
+        }
+
+        .report-modal-body iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
+            border-radius: 4px;
+            flex: 1;
+        }
+
+        @media (max-width: 768px) {
+            .report-modal {
+                padding: 8px;
+            }
+
+            .report-modal-header {
+                padding: 6px 8px;
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+
+            .report-modal-title {
+                font-size: 14px;
+                width: 100%;
+            }
+
+            .report-modal-actions {
+                width: 100%;
+                justify-content: flex-end;
+                flex-wrap: wrap;
+            }
+
+            .report-modal-btn {
+                font-size: 12px;
+                padding: 6px 10px;
+            }
+
+            .report-modal-btn span:first-child {
+                display: none;
+            }
+
+            .report-modal-body {
+                padding: 12px 8px 8px 8px;
+            }
+
+            .dashboard-container {
+                padding: 0 20px 20px;
+            }
+
+            .reports-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header-content {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-header">
+        <div class="header-content">
+            <div class="header-title">
+                <h1 style="display: flex; align-items: center; gap: 10px;">
+                    <img src="assets/img/icone.png" alt="Ícone" style="height: 2.6rem; width: auto; object-fit: contain;">
+                    Grupo Líder - Portal BI
+                </h1>
+                <p>Bem-vindo(a), <span class="usuario-nome"></span></p>
+            </div>
+            <div class="header-actions">
+                <div class="user-badge">
+                    <div class="user-badge-avatar"><span class="usuario-inicial"></span></div>
+                    <div>
+                        <div style="font-weight: 600; font-size: 14px;"><span class="usuario-nome"></span></div>
+                        <div style="font-size: 12px; color: var(--gray-600);"><span class="usuario-setor"></span></div>
+                    </div>
+                </div>
+                <button class="btn btn-secondary btn-logout">
+                    Sair
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="dashboard-container">
+        <div id="reportsContainer"></div>
+    </div>
+
+    <!-- Modal de Relatório -->
+    <div id="reportModal" class="report-modal">
+        <div class="report-modal-header">
+            <div class="report-modal-title" id="modalReportTitle"></div>
+            <div class="report-modal-actions">
+                <button class="report-modal-btn refresh-btn" onclick="atualizarRelatorio()" title="Atualizar relatório">
+                    <span>🔄</span>
+                    <span>Atualizar</span>
+                </button>
+                <button class="report-modal-btn" onclick="toggleCalculator()" title="Calculadora">
+                    <span>🔢</span>
+                    <span>Calculadora</span>
+                </button>
+                <button class="report-modal-btn" onclick="toggleFullscreen()" title="Tela cheia com bordas">
+                    <span>🖥️</span>
+                    <span>Tela Cheia</span>
+                </button>
+                <button class="report-modal-btn" onclick="toggleTrueFullscreen()" title="Tela cheia sem bordas">
+                    <span>⛶</span>
+                    <span>Tela Total</span>
+                </button>
+                <button class="report-modal-close" onclick="fecharRelatorio()" title="Fechar (ESC)">✕</button>
+            </div>
+        </div>
+        
+        <!-- Controles flutuantes para modo Tela Total -->
+        <div class="floating-controls" id="floatingControls">
+            <button class="floating-btn" onclick="toggleFloatingMenu()" title="Menu de opções">
+                ⋮
+            </button>
+            <div class="floating-menu">
+                <div class="floating-menu-item" onclick="atualizarRelatorio(); closeFloatingMenu();">
+                    <span class="icon">🔄</span>
+                    <span>Atualizar</span>
+                </div>
+                <div class="floating-menu-item" onclick="toggleCalculator(); closeFloatingMenu();">
+                    <span class="icon">🔢</span>
+                    <span>Calculadora</span>
+                </div>
+                <div class="floating-menu-item" onclick="toggleTrueFullscreen(); closeFloatingMenu();">
+                    <span class="icon">🖥️</span>
+                    <span>Modo Normal</span>
+                </div>
+                <div class="floating-menu-divider"></div>
+                <div class="floating-menu-item danger" onclick="fecharRelatorio();">
+                    <span class="icon">✕</span>
+                    <span>Fechar</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="report-modal-body">
+            <iframe id="reportIframe" allowfullscreen></iframe>
+        </div>
+    </div>
+
+    <!-- Calculadora Popup -->
+    <div class="calculator-overlay" id="calculatorOverlay"></div>
+    <div class="calculator-popup" id="calculatorPopup">
+        <div class="calculator-header" id="calculatorHeader">
+            <h3>🔢 Calculadora</h3>
+            <button class="calculator-close" onclick="toggleCalculator()">×</button>
+        </div>
+        <div class="calculator-display">
+            <div class="calculator-display-previous" id="calculatorPrevious"></div>
+            <div class="calculator-display-current" id="calculatorCurrent">0</div>
+        </div>
+        <div class="calculator-buttons">
+            <button class="calculator-btn operator" onclick="calculatorOperator('%')">%</button>
+            <button class="calculator-btn" onclick="calculatorClearEntry()">CE</button>
+            <button class="calculator-btn clear" onclick="calculatorClear()">C</button>
+            <button class="calculator-btn" onclick="calculatorDelete()">⌫</button>
+            
+            <button class="calculator-btn" onclick="calculatorFunction('1/x')">1/x</button>
+            <button class="calculator-btn" onclick="calculatorFunction('x²')">x²</button>
+            <button class="calculator-btn" onclick="calculatorFunction('√')">√</button>
+            <button class="calculator-btn operator" onclick="calculatorOperator('/')">÷</button>
+            
+            <button class="calculator-btn" onclick="calculatorNumber('7')">7</button>
+            <button class="calculator-btn" onclick="calculatorNumber('8')">8</button>
+            <button class="calculator-btn" onclick="calculatorNumber('9')">9</button>
+            <button class="calculator-btn operator" onclick="calculatorOperator('*')">×</button>
+            
+            <button class="calculator-btn" onclick="calculatorNumber('4')">4</button>
+            <button class="calculator-btn" onclick="calculatorNumber('5')">5</button>
+            <button class="calculator-btn" onclick="calculatorNumber('6')">6</button>
+            <button class="calculator-btn operator" onclick="calculatorOperator('-')">−</button>
+            
+            <button class="calculator-btn" onclick="calculatorNumber('1')">1</button>
+            <button class="calculator-btn" onclick="calculatorNumber('2')">2</button>
+            <button class="calculator-btn" onclick="calculatorNumber('3')">3</button>
+            <button class="calculator-btn operator" onclick="calculatorOperator('+')">+</button>
+            
+            <button class="calculator-btn" onclick="calculatorToggleSign()">+/−</button>
+            <button class="calculator-btn" onclick="calculatorNumber('0')">0</button>
+            <button class="calculator-btn" onclick="calculatorDecimal()">,</button>
+            <button class="calculator-btn equals" onclick="calculatorEquals()">=</button>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bcryptjs/2.4.3/bcrypt.min.js"></script>
+    <script src="assets/js/config.js"></script>
+    <script src="assets/js/auth.js"></script>
+    <script src="assets/js/reports.js"></script>
+    <script src="assets/js/main.js"></script>
+    
+    <script>
+        // Proteger página
+        if (!protegerPagina()) {
+            // Página já redirecionou
+        }
+
+        // Carregar relatórios ao iniciar
+        document.addEventListener('DOMContentLoaded', async () => {
+            const usuario = obterSessao();
+            if (usuario) {
+                // Atualizar inicial do avatar
+                const inicial = usuario.nome.charAt(0).toUpperCase();
+                document.querySelectorAll('.usuario-inicial').forEach(el => el.textContent = inicial);
+                
+                // Carregar relatórios
+                await carregarRelatorios();
+            }
+        });
+
+        // Carregar relatórios do usuário
+        async function carregarRelatorios() {
+            const container = document.getElementById('reportsContainer');
+            container.innerHTML = '<div class="text-center"><div class="loading-spinner"></div><p>Carregando relatórios...</p></div>';
+            
+            try {
+                const relatorios = await buscarRelatoriosUsuario();
+                
+                if (relatorios.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📊</div>
+                            <h2 class="empty-state-title">Nenhum relatório disponível</h2>
+                            <p class="empty-state-text">
+                                Você ainda não tem acesso a nenhum relatório.<br>
+                                Entre em contato com o administrador para solicitar acesso.
+                            </p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                // Renderizar relatórios
+                container.innerHTML = `
+                    <div class="reports-grid">
+                        ${relatorios.map(relatorio => `
+                            <div class="report-card" onclick="abrirRelatorio('${relatorio.id}', '${escapeHtml(relatorio.titulo)}', '${relatorio.report_id_powerbi}')">
+                                <div class="report-card-header">
+                                    <div class="report-card-title">${escapeHtml(relatorio.titulo)}</div>
+                                    <div class="report-card-category">${escapeHtml(relatorio.categoria || 'Geral')}</div>
+                                </div>
+                                <div class="report-card-body">
+                                    <div class="report-card-description">
+                                        ${escapeHtml(relatorio.descricao || 'Sem descrição')}
+                                    </div>
+                                    <div class="report-card-info">
+                                        <div class="report-card-info-item">
+                                            📁 Categoria: ${escapeHtml(relatorio.categoria || 'N/A')}
+                                        </div>
+                                        <div class="report-card-info-item">
+                                            📊 Fonte: ${escapeHtml(relatorio.data_source || 'N/A')}
+                                        </div>
+                                        <div class="report-card-info-item">
+                                            🔄 ${escapeHtml(relatorio.update_frequency || 'N/A')}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Erro ao carregar relatórios:', error);
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">⚠️</div>
+                        <h2 class="empty-state-title">Erro ao carregar relatórios</h2>
+                        <p class="empty-state-text">
+                            Ocorreu um erro ao buscar os relatórios.<br>
+                            Tente recarregar a página.
+                        </p>
+                        <button class="btn btn-primary" onclick="carregarRelatorios()" style="margin-top: 20px;">
+                            Tentar Novamente
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        // Abrir relatório em modal
+        function abrirRelatorio(id, titulo, reportId) {
+            const modal = document.getElementById('reportModal');
+            const iframe = document.getElementById('reportIframe');
+            const tituloEl = document.getElementById('modalReportTitle');
+            
+            tituloEl.textContent = titulo;
+            iframe.src = gerarURLPowerBI(reportId);
+            modal.classList.add('show');
+            
+            // Registrar visualização
+            registrarVisualizacao(id);
+        }
+
+        // Fechar relatório
+        function fecharRelatorio() {
+            const modal = document.getElementById('reportModal');
+            const iframe = document.getElementById('reportIframe');
+            
+            // Sair de tela cheia se estiver ativo
+            if (document.fullscreenElement) {
+                document.exitFullscreen();
+            }
+            
+            // Fechar menu flutuante se estiver aberto
+            closeFloatingMenu();
+            
+            // Remover classe de true fullscreen
+            modal.classList.remove('true-fullscreen');
+            modal.classList.remove('show');
+            iframe.src = '';
+        }
+
+        // Atualizar/Recarregar relatório
+        function atualizarRelatorio() {
+            const iframe = document.getElementById('reportIframe');
+            const currentSrc = iframe.src;
+            
+            if (currentSrc) {
+                // Método mais seguro: remover src e readicionar
+                // Isso força o iframe a recarregar completamente
+                iframe.src = '';
+                
+                // Pequeno delay para garantir que o iframe foi limpo
+                setTimeout(() => {
+                    iframe.src = currentSrc;
+                    mostrarNotificacao('Relatório atualizado!', 'success', 2000);
+                }, 100);
+            }
+        }
+
+        // Ativar/desativar tela cheia (modo com bordas)
+        function toggleFullscreen() {
+            const modal = document.getElementById('reportModal');
+            
+            // Remover true fullscreen se estiver ativo
+            modal.classList.remove('true-fullscreen');
+            
+            if (!document.fullscreenElement) {
+                // Entrar em tela cheia
+                if (modal.requestFullscreen) {
+                    modal.requestFullscreen();
+                } else if (modal.webkitRequestFullscreen) { // Safari
+                    modal.webkitRequestFullscreen();
+                } else if (modal.msRequestFullscreen) { // IE11
+                    modal.msRequestFullscreen();
+                }
+            } else {
+                // Sair de tela cheia
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) { // Safari
+                    document.webkitExitFullscreen();
+                } else if (document.msExitFullscreen) { // IE11
+                    document.msExitFullscreen();
+                }
+            }
+        }
+
+        // Ativar/desativar TRUE fullscreen (modo sem bordas - ponta a ponta)
+        function toggleTrueFullscreen() {
+            const modal = document.getElementById('reportModal');
+            const isTrueFullscreen = modal.classList.contains('true-fullscreen');
+            
+            if (!isTrueFullscreen) {
+                // Ativar true fullscreen
+                modal.classList.add('true-fullscreen');
+                
+                // Tentar entrar em fullscreen também
+                if (!document.fullscreenElement) {
+                    if (modal.requestFullscreen) {
+                        modal.requestFullscreen();
+                    } else if (modal.webkitRequestFullscreen) { // Safari
+                        modal.webkitRequestFullscreen();
+                    } else if (modal.msRequestFullscreen) { // IE11
+                        modal.msRequestFullscreen();
+                    }
+                }
+                
+                mostrarNotificacao('Modo Tela Total ativado', 'info', 2000);
+            } else {
+                // Desativar true fullscreen
+                modal.classList.remove('true-fullscreen');
+                
+                // Sair de fullscreen
+                if (document.fullscreenElement) {
+                    if (document.exitFullscreen) {
+                        document.exitFullscreen();
+                    } else if (document.webkitExitFullscreen) { // Safari
+                        document.webkitExitFullscreen();
+                    } else if (document.msExitFullscreen) { // IE11
+                        document.msExitFullscreen();
+                    }
+                }
+            }
+        }
+
+        // Toggle do menu flutuante
+        function toggleFloatingMenu() {
+            const controls = document.getElementById('floatingControls');
+            controls.classList.toggle('active');
+        }
+
+        // Fechar menu flutuante
+        function closeFloatingMenu() {
+            const controls = document.getElementById('floatingControls');
+            controls.classList.remove('active');
+        }
+
+        // Fechar menu ao clicar fora
+        document.addEventListener('click', (e) => {
+            const controls = document.getElementById('floatingControls');
+            const floatingBtn = controls?.querySelector('.floating-btn');
+            
+            if (controls && controls.classList.contains('active')) {
+                if (!controls.contains(e.target)) {
+                    controls.classList.remove('active');
+                }
+            }
+        });
+
+        // Escapar HTML para segurança
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Fechar modal com ESC
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                fecharRelatorio();
+            }
+        });
+
+        // Detectar mudanças no fullscreen
+        document.addEventListener('fullscreenchange', () => {
+            const modal = document.getElementById('reportModal');
+            // Se saiu do fullscreen, remover true-fullscreen também
+            if (!document.fullscreenElement) {
+                modal.classList.remove('true-fullscreen');
+            }
+        });
+
+        // Compatibilidade com outros navegadores
+        document.addEventListener('webkitfullscreenchange', () => {
+            const modal = document.getElementById('reportModal');
+            if (!document.webkitFullscreenElement) {
+                modal.classList.remove('true-fullscreen');
+            }
+        });
+
+        document.addEventListener('mozfullscreenchange', () => {
+            const modal = document.getElementById('reportModal');
+            if (!document.mozFullScreenElement) {
+                modal.classList.remove('true-fullscreen');
+            }
+        });
+
+        document.addEventListener('msfullscreenchange', () => {
+            const modal = document.getElementById('reportModal');
+            if (!document.msFullscreenElement) {
+                modal.classList.remove('true-fullscreen');
+            }
+        });
+
+        // ========== FUNÇÕES DA CALCULADORA ==========
+        let calculatorState = {
+            currentValue: '0',
+            previousValue: '',
+            operator: null,
+            waitingForOperand: false
+        };
+
+        // Variáveis para arrastar calculadora
+        let isDragging = false;
+        let dragOffsetX = 0;
+        let dragOffsetY = 0;
+
+        function toggleCalculator() {
+            const popup = document.getElementById('calculatorPopup');
+            const overlay = document.getElementById('calculatorOverlay');
+            
+            console.log('toggleCalculator chamado', popup, overlay); // Debug
+            
+            if (popup && popup.classList.contains('show')) {
+                // Fechar calculadora
+                popup.classList.remove('show');
+                overlay.classList.remove('show');
+                popup.style.display = 'none';
+                overlay.style.display = 'none';
+                console.log('Calculadora fechada');
+                return;
+            }
+            
+            if (popup && overlay) {
+                // Verificar se estamos em fullscreen (tela cheia ou tela total)
+                const modal = document.getElementById('reportModal');
+                const isInTrueFullscreen = modal && modal.classList.contains('true-fullscreen');
+                
+                const fullscreenElement = document.fullscreenElement || 
+                                         document.webkitFullscreenElement || 
+                                         document.mozFullScreenElement || 
+                                         document.msFullscreenElement;
+                
+                console.log('Modal true-fullscreen:', isInTrueFullscreen);
+                console.log('Browser fullscreen element:', fullscreenElement);
+                
+                if (fullscreenElement) {
+                    // Se estiver em fullscreen do navegador, adicionar dentro do elemento fullscreen
+                    console.log('Em fullscreen do navegador - adicionando ao elemento fullscreen');
+                    fullscreenElement.appendChild(overlay);
+                    fullscreenElement.appendChild(popup);
+                } else if (isInTrueFullscreen) {
+                    // Se estiver em modo "Tela Total" (sem fullscreen do navegador), adicionar ao modal
+                    console.log('Em modo Tela Total - adicionando ao modal');
+                    modal.appendChild(overlay);
+                    modal.appendChild(popup);
+                } else {
+                    // Modo normal - adicionar ao body
+                    console.log('Modo normal - adicionando ao body');
+                    document.body.appendChild(overlay);
+                    document.body.appendChild(popup);
+                }
+                
+                // Resetar posição ao centro quando abrir
+                popup.style.left = '50%';
+                popup.style.top = '50%';
+                popup.style.transform = 'translate(-50%, -50%)';
+                popup.style.position = 'fixed';
+                popup.style.zIndex = '999999';
+                popup.style.display = 'block';
+                
+                overlay.style.display = 'block';
+                overlay.style.zIndex = '999998';
+                
+                popup.classList.add('show');
+                overlay.classList.add('show');
+                
+                console.log('Calculadora aberta');
+                console.log('Parent:', popup.parentElement.tagName || popup.parentElement.className);
+                
+                // Inicializar eventos de arrastar após abrir
+                setTimeout(() => initializeDrag(), 100);
+            }
+        }
+
+        // Inicializar eventos de arrastar
+        function initializeDrag() {
+            const calculatorHeader = document.getElementById('calculatorHeader');
+            const calculatorPopup = document.getElementById('calculatorPopup');
+
+            if (!calculatorHeader || !calculatorPopup) return;
+
+            // Remover listeners antigos para evitar duplicatas
+            calculatorHeader.removeEventListener('mousedown', onDragStart);
+            calculatorHeader.removeEventListener('touchstart', onDragStart);
+            
+            // Adicionar novos listeners
+            calculatorHeader.addEventListener('mousedown', onDragStart);
+            calculatorHeader.addEventListener('touchstart', onDragStart, { passive: false });
+        }
+
+        function onDragStart(e) {
+            // Não arrastar se clicar no botão de fechar
+            if (e.target.classList.contains('calculator-close')) return;
+            
+            const calculatorPopup = document.getElementById('calculatorPopup');
+            const rect = calculatorPopup.getBoundingClientRect();
+            
+            // Calcular offset do clique em relação à posição da calculadora
+            if (e.type === 'touchstart') {
+                dragOffsetX = e.touches[0].clientX - rect.left;
+                dragOffsetY = e.touches[0].clientY - rect.top;
+            } else {
+                dragOffsetX = e.clientX - rect.left;
+                dragOffsetY = e.clientY - rect.top;
+            }
+
+            isDragging = true;
+            calculatorPopup.classList.add('dragging');
+            
+            // Remover animação de transform
+            calculatorPopup.style.transform = 'none';
+            calculatorPopup.style.left = rect.left + 'px';
+            calculatorPopup.style.top = rect.top + 'px';
+            
+            // Adicionar eventos de movimento
+            document.addEventListener('mousemove', onDrag);
+            document.addEventListener('touchmove', onDrag, { passive: false });
+            document.addEventListener('mouseup', onDragEnd);
+            document.addEventListener('touchend', onDragEnd);
+            
+            e.preventDefault();
+        }
+
+        function onDrag(e) {
+            if (!isDragging) return;
+            
+            e.preventDefault();
+            
+            const calculatorPopup = document.getElementById('calculatorPopup');
+            let clientX, clientY;
+            
+            if (e.type === 'touchmove') {
+                clientX = e.touches[0].clientX;
+                clientY = e.touches[0].clientY;
+            } else {
+                clientX = e.clientX;
+                clientY = e.clientY;
+            }
+            
+            // Calcular nova posição
+            let newLeft = clientX - dragOffsetX;
+            let newTop = clientY - dragOffsetY;
+            
+            // Limitar para não sair da tela
+            const rect = calculatorPopup.getBoundingClientRect();
+            const maxX = window.innerWidth - rect.width;
+            const maxY = window.innerHeight - rect.height;
+            
+            newLeft = Math.max(0, Math.min(newLeft, maxX));
+            newTop = Math.max(0, Math.min(newTop, maxY));
+            
+            calculatorPopup.style.left = newLeft + 'px';
+            calculatorPopup.style.top = newTop + 'px';
+        }
+
+        function onDragEnd(e) {
+            if (!isDragging) return;
+            
+            isDragging = false;
+            const calculatorPopup = document.getElementById('calculatorPopup');
+            calculatorPopup.classList.remove('dragging');
+            
+            // Remover eventos de movimento
+            document.removeEventListener('mousemove', onDrag);
+            document.removeEventListener('touchmove', onDrag);
+            document.removeEventListener('mouseup', onDragEnd);
+            document.removeEventListener('touchend', onDragEnd);
+        }
+
+        function updateCalculatorDisplay() {
+            const currentEl = document.getElementById('calculatorCurrent');
+            const previousEl = document.getElementById('calculatorPrevious');
+            
+            // Formatar número no padrão brasileiro com pontos de milhares
+            let displayValue = calculatorState.currentValue;
+            
+            // Se for um número, formatar com vírgula, pontos de milhares e limitar casas decimais
+            if (!isNaN(displayValue) && displayValue !== '') {
+                displayValue = formatNumberBR(displayValue);
+            }
+            
+            currentEl.textContent = displayValue || '0';
+            
+            if (calculatorState.operator && calculatorState.previousValue) {
+                const operatorSymbol = {
+                    '+': '+',
+                    '-': '−',
+                    '*': '×',
+                    '/': '÷',
+                    '%': '%'
+                }[calculatorState.operator];
+                
+                // Formatar valor anterior também
+                let prevValue = calculatorState.previousValue;
+                if (!isNaN(prevValue) && prevValue !== '') {
+                    prevValue = formatNumberBR(prevValue);
+                }
+                
+                previousEl.textContent = `${prevValue} ${operatorSymbol}`;
+            } else {
+                previousEl.textContent = '';
+            }
+        }
+
+        // Função para formatar número no padrão brasileiro (1.234.567,89)
+        function formatNumberBR(value) {
+            if (!value || value === '0') return '0';
+            
+            // Separar parte inteira e decimal ANTES de converter para número
+            const parts = value.split('.');
+            let integerPart = parts[0];
+            let decimalPart = parts[1];
+            
+            // Remover sinal negativo temporariamente se existir
+            const isNegative = integerPart.startsWith('-');
+            if (isNegative) {
+                integerPart = integerPart.substring(1);
+            }
+            
+            // Adicionar pontos de milhares na parte inteira
+            integerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+            
+            // Adicionar sinal negativo de volta se necessário
+            if (isNegative) {
+                integerPart = '-' + integerPart;
+            }
+            
+            // Se houver parte decimal, limitar a 8 casas e remover zeros desnecessários APENAS da decimal
+            if (decimalPart) {
+                // Limitar a 8 casas decimais
+                decimalPart = decimalPart.substring(0, 8);
+                // Remover zeros à direita APENAS da parte decimal
+                decimalPart = decimalPart.replace(/0+$/, '');
+                
+                // Se ainda houver parte decimal, adicionar vírgula
+                if (decimalPart.length > 0) {
+                    return integerPart + ',' + decimalPart;
+                }
+            }
+            
+            return integerPart;
+        }
+
+        function calculatorNumber(num) {
+            if (calculatorState.waitingForOperand) {
+                calculatorState.currentValue = num;
+                calculatorState.waitingForOperand = false;
+            } else {
+                // Permitir adicionar zero depois de outros números
+                // Só substituir o zero inicial se for digitado um número diferente de zero
+                if (calculatorState.currentValue === '0' && num !== '0') {
+                    calculatorState.currentValue = num;
+                } else {
+                    calculatorState.currentValue = calculatorState.currentValue + num;
+                }
+            }
+            updateCalculatorDisplay();
+        }
+
+        function calculatorDecimal() {
+            if (calculatorState.waitingForOperand) {
+                calculatorState.currentValue = '0.';
+                calculatorState.waitingForOperand = false;
+            } else if (calculatorState.currentValue.indexOf('.') === -1) {
+                calculatorState.currentValue += '.';
+            }
+            updateCalculatorDisplay();
+        }
+
+        function calculatorClear() {
+            calculatorState = {
+                currentValue: '0',
+                previousValue: '',
+                operator: null,
+                waitingForOperand: false
+            };
+            updateCalculatorDisplay();
+        }
+
+        function calculatorClearEntry() {
+            // CE - Limpa apenas a entrada atual
+            calculatorState.currentValue = '0';
+            calculatorState.waitingForOperand = false;
+            updateCalculatorDisplay();
+        }
+
+        function calculatorDelete() {
+            if (calculatorState.currentValue.length > 1) {
+                calculatorState.currentValue = calculatorState.currentValue.slice(0, -1);
+            } else {
+                calculatorState.currentValue = '0';
+            }
+            updateCalculatorDisplay();
+        }
+
+        function calculatorToggleSign() {
+            // +/- - Inverte o sinal do número
+            if (calculatorState.currentValue !== '0') {
+                if (calculatorState.currentValue.startsWith('-')) {
+                    calculatorState.currentValue = calculatorState.currentValue.substring(1);
+                } else {
+                    calculatorState.currentValue = '-' + calculatorState.currentValue;
+                }
+                updateCalculatorDisplay();
+            }
+        }
+
+        function calculatorFunction(func) {
+            const currentValue = parseFloat(calculatorState.currentValue);
+            let result;
+
+            switch (func) {
+                case '1/x':
+                    if (currentValue !== 0) {
+                        result = 1 / currentValue;
+                    } else {
+                        alert('Não é possível dividir por zero');
+                        return;
+                    }
+                    break;
+                case 'x²':
+                    result = currentValue * currentValue;
+                    break;
+                case '√':
+                    if (currentValue >= 0) {
+                        result = Math.sqrt(currentValue);
+                    } else {
+                        alert('Não é possível calcular raiz de número negativo');
+                        return;
+                    }
+                    break;
+            }
+
+            // Limitar a 8 casas decimais
+            if (result.toString().includes('.')) {
+                result = parseFloat(result.toFixed(8));
+            }
+
+            calculatorState.currentValue = String(result);
+            calculatorState.waitingForOperand = true;
+            updateCalculatorDisplay();
+        }
+
+        function calculatorOperator(nextOperator) {
+            const inputValue = parseFloat(calculatorState.currentValue);
+
+            if (calculatorState.previousValue === '') {
+                calculatorState.previousValue = calculatorState.currentValue;
+            } else if (calculatorState.operator) {
+                const currentValue = parseFloat(calculatorState.currentValue);
+                const previousValue = parseFloat(calculatorState.previousValue);
+                const result = performCalculation(previousValue, currentValue, calculatorState.operator);
+                
+                calculatorState.currentValue = String(result);
+                calculatorState.previousValue = String(result);
+            }
+
+            calculatorState.waitingForOperand = true;
+            calculatorState.operator = nextOperator;
+            updateCalculatorDisplay();
+        }
+
+        function calculatorEquals() {
+            const currentValue = parseFloat(calculatorState.currentValue);
+            const previousValue = parseFloat(calculatorState.previousValue);
+
+            if (calculatorState.operator && calculatorState.previousValue !== '') {
+                const result = performCalculation(previousValue, currentValue, calculatorState.operator);
+                
+                calculatorState.currentValue = String(result);
+                calculatorState.previousValue = '';
+                calculatorState.operator = null;
+                calculatorState.waitingForOperand = true;
+                updateCalculatorDisplay();
+            }
+        }
+
+        function performCalculation(firstValue, secondValue, operator) {
+            let result;
+            switch (operator) {
+                case '+':
+                    result = firstValue + secondValue;
+                    break;
+                case '-':
+                    result = firstValue - secondValue;
+                    break;
+                case '*':
+                    result = firstValue * secondValue;
+                    break;
+                case '/':
+                    result = firstValue / secondValue;
+                    break;
+                case '%':
+                    result = (firstValue * secondValue) / 100;
+                    break;
+                default:
+                    result = secondValue;
+            }
+            
+            // Limitar a 8 casas decimais
+            if (result.toString().includes('.')) {
+                result = parseFloat(result.toFixed(8));
+            }
+            
+            return result;
+        }
+
+        // Atalhos de teclado para calculadora
+        document.addEventListener('keydown', (e) => {
+            const popup = document.getElementById('calculatorPopup');
+            if (!popup.classList.contains('show')) return;
+
+            if (e.key >= '0' && e.key <= '9') {
+                calculatorNumber(e.key);
+            } else if (e.key === '.' || e.key === ',') {
+                calculatorDecimal();
+            } else if (e.key === '+' || e.key === '-' || e.key === '*' || e.key === '/') {
+                calculatorOperator(e.key);
+            } else if (e.key === '%') {
+                calculatorOperator('%');
+            } else if (e.key === 'Enter' || e.key === '=') {
+                e.preventDefault();
+                calculatorEquals();
+            } else if (e.key === 'Escape') {
+                toggleCalculator();
+            } else if (e.key === 'Backspace') {
+                e.preventDefault();
+                calculatorDelete();
+            } else if (e.key === 'c' || e.key === 'C') {
+                calculatorClear();
+            }
+        });
+
+        // ========== FIM FUNÇÕES DA CALCULADORA ==========
+
+        // Registrar Service Worker (PWA)
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./service-worker.js')
+                    .then((registration) => {
+                        console.log('✅ Service Worker registrado:', registration.scope);
+                    })
+                    .catch((error) => {
+                        console.log('❌ Erro ao registrar Service Worker:', error);
+                    });
+            });
+        }
+    </script>
+</body>
+</html>

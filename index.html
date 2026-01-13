@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - BI Portal Secure</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="description" content="Portal de Business Intelligence do Grupo Líder">
+    <meta name="theme-color" content="#2563eb">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Portal BI">
+    
+    <!-- PWA Icons -->
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/img/pwa-icons/16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/img/pwa-icons/32.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="assets/img/pwa-icons/192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="assets/img/pwa-icons/512.png">
+    <link rel="apple-touch-icon" href="assets/img/pwa-icons/180.png">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- Estilos -->
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/login.css">
+</head>
+<body>
+    <!-- Background Slideshow -->
+    <div class="login-background">
+        <div class="login-background-image active" style="background-image: url('assets/img/lider1.jpg');"></div>
+        <div class="login-background-image" style="background-image: url('assets/img/lider2.jpg');"></div>
+        <div class="login-background-image" style="background-image: url('assets/img/lider3.jpg');"></div>
+        <div class="login-background-image" style="background-image: url('assets/img/lider4.jpg');"></div>
+        <div class="login-background-image" style="background-image: url('assets/img/lider5.jpg');"></div>
+    </div>
+
+    <div class="login-container">
+        <div class="login-card">
+            <div class="login-header">
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;">
+                    <img src="assets/img/icone.png" alt="Ícone" style="height: 2.6rem; width: auto; object-fit: contain;">
+                    <h1 style="font-size: 2rem; margin: 0; color: white; text-align: center;">Grupo Líder</h1>
+                </div>
+                <p>Portal da Controladoria</p>
+                <p style="font-size: 12px; opacity: 0.85; margin-top: 4px;">(Business Intelligence)</p>
+            </div>
+            
+            <div class="login-body">
+                <form id="formLogin" onsubmit="handleLogin(event)">
+                    <div id="alertContainer"></div>
+                    
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input 
+                            type="email" 
+                            id="email" 
+                            class="form-control" 
+                            placeholder="seu.email@empresa.com"
+                            required
+                            autocomplete="email"
+                        >
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="senha">Senha</label>
+                        <div class="password-wrapper">
+                            <input 
+                                type="password" 
+                                id="senha" 
+                                class="form-control" 
+                                placeholder="••••••••"
+                                required
+                                autocomplete="current-password"
+                            >
+                            <button 
+                                type="button" 
+                                class="password-toggle" 
+                                onclick="togglePassword()"
+                                title="Mostrar/Ocultar senha"
+                            >
+                                👁️
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary btn-block btn-lg" id="btnLogin">
+                        Entrar
+                    </button>
+                    
+                    <div style="margin-top: 16px; text-align: center;">
+                        <a href="esqueci-senha.html" style="color: var(--primary-color); text-decoration: none; font-size: 14px;">
+                            Esqueci minha senha
+                        </a>
+                    </div>
+                </form>
+            </div>
+            
+            <div class="login-footer">
+                <p>Sistema seguro com criptografia de ponta a ponta</p>
+                <p style="margin-top: 8px; font-size: 12px; color: var(--gray-500);">
+                    © 2025 Controladoria - BI Portal Secure v1.0
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bcryptjs/2.4.3/bcrypt.min.js"></script>
+    <script src="assets/js/config.js"></script>
+    <script src="assets/js/auth.js"></script>
+    <script src="assets/js/main.js"></script>
+    
+    <script>
+        // Verificar se já está logado após todos os scripts carregarem
+        window.addEventListener('DOMContentLoaded', () => {
+            if (typeof estaAutenticado === 'function' && estaAutenticado()) {
+                redirecionarPorTipo();
+            }
+        });
+
+        // Alternar visibilidade da senha
+        function togglePassword() {
+            const senhaInput = document.getElementById('senha');
+            const type = senhaInput.type === 'password' ? 'text' : 'password';
+            senhaInput.type = type;
+        }
+
+        // Processar login
+        async function handleLogin(event) {
+            event.preventDefault();
+            
+            const btnLogin = document.getElementById('btnLogin');
+            const email = document.getElementById('email').value.trim();
+            const senha = document.getElementById('senha').value;
+            
+            // Validar campos
+            if (!email || !senha) {
+                mostrarAlerta('Preencha todos os campos', 'error');
+                return;
+            }
+            
+            // Desabilitar botão
+            btnLogin.disabled = true;
+            btnLogin.textContent = 'Entrando...';
+            
+            try {
+                // Fazer login
+                const resultado = await fazerLogin(email, senha);
+                
+                if (resultado.sucesso) {
+                    mostrarAlerta('Login realizado com sucesso!', 'success');
+                    
+                    // Aguardar 500ms e redirecionar
+                    setTimeout(() => {
+                        redirecionarPorTipo();
+                    }, 500);
+                } else {
+                    mostrarAlerta(resultado.erro || 'Erro ao fazer login', 'error');
+                    btnLogin.disabled = false;
+                    btnLogin.textContent = 'Entrar';
+                }
+            } catch (error) {
+                console.error('Erro no login:', error);
+                mostrarAlerta('Erro inesperado. Tente novamente.', 'error');
+                btnLogin.disabled = false;
+                btnLogin.textContent = 'Entrar';
+            }
+        }
+
+        // Mostrar alerta
+        function mostrarAlerta(mensagem, tipo) {
+            const container = document.getElementById('alertContainer');
+            const classe = tipo === 'error' ? 'alert-error' : tipo === 'success' ? 'alert-success' : 'alert-info';
+            
+            container.innerHTML = `
+                <div class="alert ${classe}">
+                    ${mensagem}
+                </div>
+            `;
+            
+            // Remover após 5 segundos
+            setTimeout(() => {
+                container.innerHTML = '';
+            }, 5000);
+        }
+
+        // Focus no campo de email ao carregar
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('email').focus();
+            
+            // Slideshow automático do background
+            const images = document.querySelectorAll('.login-background-image');
+            let currentIndex = 0;
+            
+            setInterval(() => {
+                images[currentIndex].classList.remove('active');
+                currentIndex = (currentIndex + 1) % images.length;
+                images[currentIndex].classList.add('active');
+            }, 5000); // Troca a cada 5 segundos
+        });
+
+        // Registrar Service Worker (PWA)
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./service-worker.js')
+                    .then((registration) => {
+                        console.log('✅ Service Worker registrado:', registration.scope);
+                    })
+                    .catch((error) => {
+                        console.log('❌ Erro ao registrar Service Worker:', error);
+                    });
+            });
+        }
+    </script>
+</body>
+</html>

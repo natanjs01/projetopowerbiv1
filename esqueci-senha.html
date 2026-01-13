@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recuperar Senha - BI Portal Secure</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="description" content="Portal de Business Intelligence do Grupo Líder">
+    <meta name="theme-color" content="#2563eb">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Portal BI">
+    
+    <!-- PWA Icons -->
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/img/pwa-icons/16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/img/pwa-icons/32.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="assets/img/pwa-icons/192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="assets/img/pwa-icons/512.png">
+    <link rel="apple-touch-icon" href="assets/img/pwa-icons/180.png">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- Estilos -->
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/login.css">
+</head>
+<body>
+    <!-- Background Slideshow -->
+    <div class="login-background">
+        <div class="login-background-image active" style="background-image: url('assets/img/lider1.jpg');"></div>
+        <div class="login-background-image" style="background-image: url('assets/img/lider2.jpg');"></div>
+        <div class="login-background-image" style="background-image: url('assets/img/lider3.jpg');"></div>
+        <div class="login-background-image" style="background-image: url('assets/img/lider4.jpg');"></div>
+        <div class="login-background-image" style="background-image: url('assets/img/lider5.jpg');"></div>
+    </div>
+
+    <div class="login-container">
+        <div class="login-card">
+            <div class="login-header">
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;">
+                    <img src="assets/img/icone.png" alt="Ícone" style="height: 2.6rem; width: auto; object-fit: contain;">
+                    <h1 style="font-size: 2rem; margin: 0; color: white; text-align: center;">Grupo Líder</h1>
+                </div>
+                <p>Recuperar Senha</p>
+                <p style="font-size: 13px; opacity: 0.85; margin-top: 4px;">Digite seu email para receber o link de recuperação</p>
+            </div>
+            
+            <div class="login-body">
+                <form id="formRecuperarSenha" onsubmit="handleRecuperarSenha(event)">
+                    <div id="alertContainer"></div>
+                    
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input 
+                            type="email" 
+                            id="email" 
+                            class="form-control" 
+                            placeholder="seu.email@empresa.com"
+                            required
+                            autocomplete="email"
+                        >
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary btn-block btn-lg" id="btnRecuperar">
+                        Enviar Link de Recuperação
+                    </button>
+                    
+                    <div style="margin-top: 16px; text-align: center;">
+                        <a href="index.html" style="color: var(--primary-color); text-decoration: none; font-size: 14px;">
+                            ← Voltar para o login
+                        </a>
+                    </div>
+                </form>
+            </div>
+            
+            <div class="login-footer">
+                <p>Sistema seguro com criptografia de ponta a ponta</p>
+                <p style="margin-top: 8px; font-size: 12px; color: var(--gray-500);">
+                    © 2025 Controladoria - BI Portal Secure v1.0
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- Scripts -->
+    <script src="assets/js/config.js"></script>
+    <script src="assets/js/auth.js"></script>
+    
+    <script>
+        // Animação do background
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.login-background-image');
+        
+        function nextSlide() {
+            slides[currentSlide].classList.remove('active');
+            currentSlide = (currentSlide + 1) % slides.length;
+            slides[currentSlide].classList.add('active');
+        }
+        
+        setInterval(nextSlide, 5000);
+
+        // Função de recuperação de senha
+        async function handleRecuperarSenha(event) {
+            event.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const btnRecuperar = document.getElementById('btnRecuperar');
+            const alertContainer = document.getElementById('alertContainer');
+            
+            // Desabilitar botão
+            btnRecuperar.disabled = true;
+            btnRecuperar.textContent = 'Enviando...';
+            
+            try {
+                const resultado = await solicitarRecuperacaoSenha(email);
+                
+                if (resultado.sucesso) {
+                    mostrarAlerta('sucesso', resultado.mensagem || 'Link de recuperação enviado com sucesso! Verifique seu email.');
+                    
+                    // Redirecionar após 3 segundos
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 3000);
+                } else {
+                    mostrarAlerta('erro', resultado.erro || 'Erro ao enviar link de recuperação. Tente novamente.');
+                    btnRecuperar.disabled = false;
+                    btnRecuperar.textContent = 'Enviar Link de Recuperação';
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                mostrarAlerta('erro', 'Erro ao processar solicitação. Tente novamente.');
+                btnRecuperar.disabled = false;
+                btnRecuperar.textContent = 'Enviar Link de Recuperação';
+            }
+        }
+        
+        // Função para mostrar alertas
+        function mostrarAlerta(tipo, mensagem) {
+            const alertContainer = document.getElementById('alertContainer');
+            const classeAlerta = tipo === 'sucesso' ? 'alert-success' : 'alert-danger';
+            
+            alertContainer.innerHTML = `
+                <div class="alert ${classeAlerta}">
+                    ${mensagem}
+                </div>
+            `;
+            
+            // Auto-remover após 5 segundos
+            setTimeout(() => {
+                alertContainer.innerHTML = '';
+            }, 5000);
+        }
+    </script>
+</body>
+</html>

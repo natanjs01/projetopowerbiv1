@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciar Relatórios - BI Portal Secure</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#2563eb">
+    <link rel="manifest" href="../manifest.json">
+    
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <link rel="stylesheet" href="../assets/css/admin.css">
+</head>
+<body>
+    <div class="admin-wrapper">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2 style="display: flex; align-items: center; gap: 10px;">
+                    <img src="../assets/img/icone.png" alt="Ícone" style="height: 2.6rem; width: auto; object-fit: contain;">
+                    Grupo Líder
+                </h2>
+                <p>Portal BI</p>
+            </div>
+            
+            <nav class="sidebar-menu">
+                <a href="index.html" class="menu-item">
+                    <span class="menu-item-icon">📊</span>
+                    Dashboard
+                </a>
+                <a href="usuarios.html" class="menu-item">
+                    <span class="menu-item-icon">👥</span>
+                    Usuários
+                </a>
+                <a href="relatorios.html" class="menu-item active">
+                    <span class="menu-item-icon">📁</span>
+                    Relatórios
+                </a>
+                <a href="setores.html" class="menu-item">
+                    <span class="menu-item-icon">🏢</span>
+                    Setores
+                </a>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="user-avatar">
+                        <span class="usuario-inicial"></span>
+                    </div>
+                    <div class="user-details">
+                        <div class="user-name usuario-nome"></div>
+                        <div class="user-role">Administrador</div>
+                    </div>
+                </div>
+                <button class="btn btn-secondary btn-block btn-sm btn-logout">
+                    Sair
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="content-header">
+                <h1 class="content-title">Gerenciar Relatórios</h1>
+                <button class="btn btn-primary" onclick="abrirModalRelatorio()">
+                    + Novo Relatório
+                </button>
+            </div>
+
+            <!-- Filtros -->
+            <div class="card">
+                <div class="card-body">
+                    <div class="filtros">
+                        <input type="text" id="filtroBusca" placeholder="🔍 Buscar por título ou descrição..." class="input">
+                        <select id="filtroStatus" class="input">
+                            <option value="">🔘 Todos os status</option>
+                            <option value="true">✅ Ativos</option>
+                            <option value="false">❌ Inativos</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Grid de Relatórios -->
+            <div id="relatoriosGrid" class="reports-grid">
+                <div class="text-center" style="grid-column: 1 / -1; padding: 40px;">
+                    Carregando...
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Relatório -->
+    <div class="modal" id="modalRelatorio">
+        <div class="modal-content modal-lg">
+            <div class="modal-header">
+                <h3 id="modalRelatorioTitulo">Novo Relatório</h3>
+                <button class="modal-close" onclick="fecharModalRelatorio()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="formRelatorio" onsubmit="salvarRelatorio(event)">
+                    <input type="hidden" id="relatorioId" value="">
+                    
+                    <div class="form-group">
+                        <label for="relatorioTitulo">Título do Relatório *</label>
+                        <input type="text" id="relatorioTitulo" class="input" required placeholder="Ex: Kardex de Estoque">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="relatorioDescricao">Descrição</label>
+                        <textarea id="relatorioDescricao" class="input" rows="2" placeholder="Breve descrição do relatório"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="relatorioCategoria">📁 Categoria</label>
+                        <select id="relatorioCategoria" class="input">
+                            <option value="">Selecione uma categoria</option>
+                            <option value="Financeiro">Financeiro</option>
+                            <option value="Vendas">Vendas</option>
+                            <option value="Estoque">Estoque</option>
+                            <option value="Compras">Compras</option>
+                            <option value="RH">Recursos Humanos</option>
+                            <option value="Produção">Produção</option>
+                            <option value="Logística">Logística</option>
+                            <option value="Marketing">Marketing</option>
+                            <option value="Geral">Geral</option>
+                            <option value="Outros">Outros</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="relatorioFonte">📊 Fonte de Dados</label>
+                        <input type="text" id="relatorioFonte" class="input" placeholder="Ex: ERP TOTVS, SQL Server, Excel, etc.">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="relatorioFrequencia">🔄 Frequência de Atualização</label>
+                        <select id="relatorioFrequencia" class="input">
+                            <option value="">Selecione a frequência</option>
+                            <option value="Tempo Real">Tempo Real</option>
+                            <option value="Atualização Automática a cada 15 min">A cada 15 minutos</option>
+                            <option value="Atualização Automática a cada 30 min">A cada 30 minutos</option>
+                            <option value="Atualização Automática a cada hora">A cada hora</option>
+                            <option value="Atualização Diária">Diária</option>
+                            <option value="Atualização Semanal">Semanal</option>
+                            <option value="Atualização Mensal">Mensal</option>
+                            <option value="Sob Demanda">Sob Demanda</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="relatorioIframe">Cole o iframe completo do Power BI *</label>
+                        <textarea id="relatorioIframe" class="input" rows="6" required 
+                                  placeholder='<iframe title="..." width="..." height="..." src="https://app.powerbi.com/..." frameborder="0" allowFullScreen="true"></iframe>'></textarea>
+                        <small>Cole o código iframe completo gerado no Power BI. O reportId será extraído automaticamente.</small>
+                    </div>
+
+                    <div id="reportIdExtraido" style="display:none; margin-top: 10px;">
+                        <div class="alert alert-success">
+                            ✅ Report ID extraído: <strong id="reportIdValor"></strong>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="relatorioAtivo" checked>
+                            Relatório Ativo
+                        </label>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" onclick="fecharModalRelatorio()">
+                            Cancelar
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            Salvar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Permissões -->
+    <div class="modal" id="modalPermissoes">
+        <div class="modal-content modal-lg">
+            <div class="modal-header">
+                <div>
+                    <h3 id="modalPermissoesTitulo">🔐 Permissões do Relatório</h3>
+                    <p style="margin: 4px 0 0 0; font-size: 0.9rem; color: var(--gray-600); font-weight: 400;">
+                        <span id="nomeRelatorioPermissoes"></span>
+                    </p>
+                </div>
+                <button class="modal-close" onclick="fecharModalPermissoes()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info" style="margin-bottom: 24px;">
+                    <strong>ℹ️ Instruções:</strong> Selecione os usuários e/ou setores que terão acesso a este relatório. 
+                    As permissões são aplicadas imediatamente.
+                </div>
+
+                <div class="permissions-tabs">
+                    <button class="tab-button active" onclick="switchPermTab('usuarios')" id="tabUsuarios">
+                        👥 Por Usuário
+                    </button>
+                    <button class="tab-button" onclick="switchPermTab('setores')" id="tabSetores">
+                        🏢 Por Setor
+                    </button>
+                </div>
+
+                <!-- Tab Usuários -->
+                <div id="tabContentUsuarios" class="tab-content active">
+                    <div class="search-box">
+                        <input type="text" id="buscaUsuario" class="input" placeholder="🔍 Buscar usuário por nome ou email...">
+                    </div>
+                    <div id="listaUsuarios" class="permissions-list">
+                        <div class="loading-state">
+                            <div class="spinner"></div>
+                            <p>Carregando usuários...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab Setores -->
+                <div id="tabContentSetores" class="tab-content" style="display: none;">
+                    <div class="search-box">
+                        <input type="text" id="buscaSetor" class="input" placeholder="🔍 Buscar setor...">
+                    </div>
+                    <div id="listaSetores" class="permissions-list">
+                        <div class="loading-state">
+                            <div class="spinner"></div>
+                            <p>Carregando setores...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer" style="margin-top: 24px;">
+                    <button type="button" class="btn btn-secondary" onclick="fecharModalPermissoes()">
+                        ✓ Concluído
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bcryptjs/2.4.3/bcrypt.min.js"></script>
+    <script src="../assets/js/config.js"></script>
+    <script src="../assets/js/auth.js"></script>
+    <script src="../assets/js/reports.js"></script>
+    <script src="../assets/js/admin.js"></script>
+    <script src="../assets/js/main.js"></script>
+    
+    <script>
+        let relatorioPermissoesId = null;
+        let todosUsuarios = [];
+        let todosSetores = [];
+
+        // Proteger página (apenas admin)
+        if (!protegerPagina('admin')) {
+            // Já redirecionou
+        }
+
+        // Carregar dados ao iniciar
+        document.addEventListener('DOMContentLoaded', async () => {
+            const usuario = obterSessao();
+            if (usuario) {
+                const inicial = usuario.nome.charAt(0).toUpperCase();
+                document.querySelectorAll('.usuario-inicial').forEach(el => el.textContent = inicial);
+            }
+
+            await carregarRelatorios();
+            
+            // Event listeners para auto-filtro
+            document.getElementById('filtroBusca').addEventListener('input', carregarRelatorios);
+            document.getElementById('filtroStatus').addEventListener('change', carregarRelatorios);
+
+            // Auto-extrair reportId quando colar iframe
+            document.getElementById('relatorioIframe').addEventListener('input', function() {
+                const iframeCode = this.value.trim();
+                
+                // Extrair Report ID
+                const reportId = extrairReportId(iframeCode);
+                
+                if (reportId) {
+                    document.getElementById('reportIdValor').textContent = reportId;
+                    document.getElementById('reportIdExtraido').style.display = 'block';
+                } else {
+                    document.getElementById('reportIdExtraido').style.display = 'none';
+                }
+
+                // Auto-preencher título se estiver vazio
+                const tituloInput = document.getElementById('relatorioTitulo');
+                if (!tituloInput.value && iframeCode) {
+                    // Extrair título do atributo title do iframe
+                    const titleMatch = iframeCode.match(/title=["']([^"']+)["']/i);
+                    if (titleMatch && titleMatch[1]) {
+                        // Limpar o título (remover prefixos comuns)
+                        let titulo = titleMatch[1]
+                            .replace(/^BI\s*-\s*/i, '')
+                            .replace(/^PAINEL\s*/i, '')
+                            .replace(/^DASHBOARD\s*/i, '')
+                            .trim();
+                        tituloInput.value = titulo;
+                    }
+                }
+
+                // Auto-preencher descrição se estiver vazia
+                const descricaoInput = document.getElementById('relatorioDescricao');
+                if (!descricaoInput.value && reportId) {
+                    descricaoInput.value = `Relatório Power BI - ${reportId.substring(0, 8)}`;
+                }
+            });
+        });
+
+        // Carregar relatórios
+        async function carregarRelatorios() {
+            const grid = document.getElementById('relatoriosGrid');
+            const filtroBusca = document.getElementById('filtroBusca').value.toLowerCase();
+            const filtroStatus = document.getElementById('filtroStatus').value;
+
+            try {
+                let query = supabase
+                    .from('relatorios')
+                    .select('*');
+
+                if (filtroStatus !== '') {
+                    query = query.eq('ativo', filtroStatus === 'true');
+                }
+
+                const { data, error } = await query.order('titulo');
+
+                if (error) throw error;
+
+                // Filtro de busca no client-side
+                let relatorios = data;
+                if (filtroBusca) {
+                    relatorios = data.filter(r => 
+                        r.titulo.toLowerCase().includes(filtroBusca) ||
+                        (r.descricao && r.descricao.toLowerCase().includes(filtroBusca))
+                    );
+                }
+
+                if (relatorios.length === 0) {
+                    grid.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 40px;">Nenhum relatório encontrado</div>';
+                    return;
+                }
+
+                grid.innerHTML = relatorios.map(relatorio => `
+                    <div class="report-card ${!relatorio.ativo ? 'inactive' : ''}">
+                        <div class="report-header">
+                            <h3>${relatorio.titulo}</h3>
+                            <span class="badge ${relatorio.ativo ? 'badge-success' : 'badge-secondary'}">
+                                ${relatorio.ativo ? 'Ativo' : 'Inativo'}
+                            </span>
+                        </div>
+                        <p class="report-description">${relatorio.descricao || 'Sem descrição'}</p>
+                        <div class="report-meta">
+                            <small>Report ID: ${relatorio.report_id_powerbi}</small>
+                        </div>
+                        <div class="report-actions">
+                            <button class="btn btn-sm btn-primary" onclick="visualizarRelatorio('${relatorio.id}')" title="Visualizar Dashboard">
+                                👁️ Visualizar
+                            </button>
+                            <button class="btn btn-sm btn-secondary" onclick="editarRelatorio('${relatorio.id}')" title="Editar">
+                                ✏️ Editar
+                            </button>
+                            <button class="btn btn-sm btn-info" onclick="gerenciarPermissoes('${relatorio.id}')" title="Permissões">
+                                🔐 Permissões
+                            </button>
+                            <button class="btn btn-sm ${relatorio.ativo ? 'btn-danger' : 'btn-success'}" 
+                                    onclick="toggleAtivoRelatorio('${relatorio.id}', ${!relatorio.ativo})" 
+                                    title="${relatorio.ativo ? 'Desativar' : 'Ativar'}">
+                                ${relatorio.ativo ? '🚫' : '✅'}
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Erro ao carregar relatórios:', error);
+                grid.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 40px;">Erro ao carregar relatórios</div>';
+            }
+        }
+
+        // Abrir modal para novo relatório
+        function abrirModalRelatorio() {
+            document.getElementById('modalRelatorioTitulo').textContent = 'Novo Relatório';
+            document.getElementById('formRelatorio').reset();
+            document.getElementById('relatorioId').value = '';
+            document.getElementById('relatorioAtivo').checked = true;
+            document.getElementById('reportIdExtraido').style.display = 'none';
+            document.getElementById('modalRelatorio').style.display = 'flex';
+        }
+
+        // Fechar modal relatório
+        function fecharModalRelatorio() {
+            document.getElementById('modalRelatorio').style.display = 'none';
+        }
+
+        // Visualizar relatório
+        async function visualizarRelatorio(id) {
+            try {
+                const { data, error } = await supabase
+                    .from('relatorios')
+                    .select('report_id_powerbi')
+                    .eq('id', id)
+                    .single();
+
+                if (error) throw error;
+
+                // Construir URL do Power BI
+                const powerBiUrl = `https://app.powerbi.com/reportEmbed?reportId=${data.report_id_powerbi}&autoAuth=true&ctid=9b7f8a4a-312e-4ce9-9391-103c1c9a32a1`;
+                
+                // Abrir em nova guia
+                window.open(powerBiUrl, '_blank');
+            } catch (error) {
+                console.error('Erro ao visualizar relatório:', error);
+                mostrarAlerta('Erro ao abrir relatório', 'error');
+            }
+        }
+
+        // Editar relatório
+        async function editarRelatorio(id) {
+            try {
+                const { data, error } = await supabase
+                    .from('relatorios')
+                    .select('*')
+                    .eq('id', id)
+                    .single();
+
+                if (error) throw error;
+
+                document.getElementById('modalRelatorioTitulo').textContent = 'Editar Relatório';
+                document.getElementById('relatorioId').value = data.id;
+                document.getElementById('relatorioTitulo').value = data.titulo;
+                document.getElementById('relatorioDescricao').value = data.descricao || '';
+                document.getElementById('relatorioCategoria').value = data.categoria || '';
+                document.getElementById('relatorioFonte').value = data.data_source || '';
+                document.getElementById('relatorioFrequencia').value = data.update_frequency || '';
+                document.getElementById('relatorioIframe').value = data.iframe_completo;
+                document.getElementById('relatorioAtivo').checked = data.ativo;
+                
+                // Mostrar reportId extraído
+                document.getElementById('reportIdValor').textContent = data.report_id_powerbi;
+                document.getElementById('reportIdExtraido').style.display = 'block';
+                
+                document.getElementById('modalRelatorio').style.display = 'flex';
+            } catch (error) {
+                console.error('Erro ao carregar relatório:', error);
+                mostrarAlerta('Erro ao carregar dados do relatório', 'error');
+            }
+        }
+
+        // Salvar relatório
+        async function salvarRelatorio(event) {
+            event.preventDefault();
+
+            const id = document.getElementById('relatorioId').value;
+            const titulo = document.getElementById('relatorioTitulo').value;
+            const descricao = document.getElementById('relatorioDescricao').value;
+            const categoria = document.getElementById('relatorioCategoria').value;
+            const dataSource = document.getElementById('relatorioFonte').value;
+            const updateFrequency = document.getElementById('relatorioFrequencia').value;
+            const iframeCode = document.getElementById('relatorioIframe').value;
+            const ativo = document.getElementById('relatorioAtivo').checked;
+
+            // Extrair reportId
+            const reportId = extrairReportId(iframeCode);
+            if (!reportId) {
+                mostrarAlerta('Não foi possível extrair o Report ID do iframe. Verifique o código.', 'error');
+                return;
+            }
+
+            try {
+                const usuario = obterSessao();
+                
+                if (id) {
+                    // Atualizar relatório existente
+                    const { error } = await supabase
+                        .from('relatorios')
+                        .update({
+                            titulo,
+                            descricao,
+                            categoria,
+                            data_source: dataSource,
+                            update_frequency: updateFrequency,
+                            report_id_powerbi: reportId,
+                            iframe_completo: iframeCode,
+                            ativo,
+                            data_atualizacao: new Date().toISOString()
+                        })
+                        .eq('id', id);
+
+                    if (error) throw error;
+
+                    mostrarAlerta('Relatório atualizado com sucesso!', 'success');
+                } else {
+                    // Criar novo relatório
+                    const { error } = await supabase
+                        .from('relatorios')
+                        .insert({
+                            titulo,
+                            descricao,
+                            categoria,
+                            data_source: dataSource,
+                            update_frequency: updateFrequency,
+                            report_id_powerbi: reportId,
+                            iframe_completo: iframeCode,
+                            ativo,
+                            criado_por: usuario.id
+                        });
+
+                    if (error) throw error;
+
+                    mostrarAlerta('Relatório criado com sucesso!', 'success');
+                }
+
+                fecharModalRelatorio();
+                await carregarRelatorios();
+            } catch (error) {
+                console.error('Erro ao salvar relatório:', error);
+                mostrarAlerta('Erro ao salvar relatório: ' + error.message, 'error');
+            }
+        }
+
+        // Toggle ativo/inativo
+        async function toggleAtivoRelatorio(id, novoStatus) {
+            if (!confirm(`Deseja realmente ${novoStatus ? 'ativar' : 'desativar'} este relatório?`)) {
+                return;
+            }
+
+            try {
+                const { error } = await supabase
+                    .from('relatorios')
+                    .update({ ativo: novoStatus })
+                    .eq('id', id);
+
+                if (error) throw error;
+
+                mostrarAlerta('Status atualizado com sucesso!', 'success');
+                await carregarRelatorios();
+            } catch (error) {
+                console.error('Erro ao atualizar status:', error);
+                mostrarAlerta('Erro ao atualizar status', 'error');
+            }
+        }
+
+        // Gerenciar permissões
+        async function gerenciarPermissoes(relatorioId) {
+            relatorioPermissoesId = relatorioId;
+
+            // Buscar título do relatório
+            const { data: relatorio } = await supabase
+                .from('relatorios')
+                .select('titulo')
+                .eq('id', relatorioId)
+                .single();
+
+            document.getElementById('nomeRelatorioPermissoes').textContent = 
+                relatorio?.titulo || 'Carregando...';
+
+            await carregarUsuariosPermissoes();
+            await carregarSetoresPermissoes();
+
+            document.getElementById('modalPermissoes').style.display = 'flex';
+        }
+
+        // Alternar entre tabs de permissões
+        function switchPermTab(tab) {
+            // Remover active de todos
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.style.display = 'none');
+            
+            // Ativar tab selecionada
+            if (tab === 'usuarios') {
+                document.getElementById('tabUsuarios').classList.add('active');
+                document.getElementById('tabContentUsuarios').style.display = 'block';
+            } else {
+                document.getElementById('tabSetores').classList.add('active');
+                document.getElementById('tabContentSetores').style.display = 'block';
+            }
+        }
+
+        // Fechar modal permissões
+        function fecharModalPermissoes() {
+            document.getElementById('modalPermissoes').style.display = 'none';
+            relatorioPermissoesId = null;
+            // Resetar para tab de usuários
+            switchPermTab('usuarios');
+        }
+
+        // Carregar usuários para permissões
+        async function carregarUsuariosPermissoes() {
+            const lista = document.getElementById('listaUsuarios');
+
+            try {
+                // Buscar todos usuários
+                const { data: usuarios, error: errorUsuarios } = await supabase
+                    .from('usuarios')
+                    .select('id, nome, email')
+                    .eq('ativo', true)
+                    .order('nome');
+
+                if (errorUsuarios) throw errorUsuarios;
+
+                todosUsuarios = usuarios;
+
+                // Buscar permissões existentes
+                const { data: permissoes, error: errorPermissoes } = await supabase
+                    .from('permissoes')
+                    .select('usuario_id')
+                    .eq('relatorio_id', relatorioPermissoesId)
+                    .not('usuario_id', 'is', null);
+
+                if (errorPermissoes) throw errorPermissoes;
+
+                const permissoesUsuarios = permissoes.map(p => p.usuario_id);
+
+                if (usuarios.length === 0) {
+                    lista.innerHTML = '<div class="empty-state"><p>Nenhum usuário ativo encontrado</p></div>';
+                    return;
+                }
+
+                lista.innerHTML = usuarios.map(usuario => {
+                    const temPermissao = permissoesUsuarios.includes(usuario.id);
+                    const iniciais = usuario.nome.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+                    
+                    return `
+                        <div class="permission-item">
+                            <div class="permission-info">
+                                <div class="permission-icon">${iniciais}</div>
+                                <div class="permission-details">
+                                    <div class="permission-name">${usuario.nome}</div>
+                                    <div class="permission-email">${usuario.email}</div>
+                                </div>
+                            </div>
+                            <div class="permission-checkbox">
+                                <input type="checkbox" 
+                                       ${temPermissao ? 'checked' : ''}
+                                       onchange="togglePermissaoUsuario('${usuario.id}', this.checked)">
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                // Filtro de busca
+                document.getElementById('buscaUsuario').addEventListener('input', function() {
+                    filtrarUsuarios(this.value);
+                });
+            } catch (error) {
+                console.error('Erro ao carregar usuários:', error);
+                lista.innerHTML = '<div class="empty-state"><p>❌ Erro ao carregar usuários</p></div>';
+            }
+        }
+
+        // Carregar setores para permissões
+        async function carregarSetoresPermissoes() {
+            const lista = document.getElementById('listaSetores');
+
+            try {
+                // Buscar todos setores
+                const { data: setores, error: errorSetores } = await supabase
+                    .from('setores')
+                    .select('id, nome')
+                    .order('nome');
+
+                if (errorSetores) throw errorSetores;
+
+                todosSetores = setores;
+
+                // Buscar permissões existentes
+                const { data: permissoes, error: errorPermissoes } = await supabase
+                    .from('permissoes')
+                    .select('setor')
+                    .eq('relatorio_id', relatorioPermissoesId)
+                    .not('setor', 'is', null);
+
+                if (errorPermissoes) throw errorPermissoes;
+
+                const permissoesSetores = permissoes.map(p => p.setor);
+
+                if (setores.length === 0) {
+                    lista.innerHTML = '<div class="empty-state"><p>Nenhum setor cadastrado</p></div>';
+                    return;
+                }
+
+                lista.innerHTML = setores.map(setor => {
+                    const temPermissao = permissoesSetores.includes(setor.nome);
+                    const icone = '🏢';
+                    
+                    return `
+                        <div class="permission-item">
+                            <div class="permission-info">
+                                <div class="permission-icon" style="background: var(--secondary-color);">${icone}</div>
+                                <div class="permission-details">
+                                    <div class="permission-name">${setor.nome}</div>
+                                    <div class="permission-email">Todos os usuários deste setor</div>
+                                </div>
+                            </div>
+                            <div class="permission-checkbox">
+                                <input type="checkbox" 
+                                       ${temPermissao ? 'checked' : ''}
+                                       onchange="togglePermissaoSetor('${setor.nome}', this.checked)">
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                // Filtro de busca
+                document.getElementById('buscaSetor').addEventListener('input', function() {
+                    filtrarSetores(this.value);
+                });
+            } catch (error) {
+                console.error('Erro ao carregar setores:', error);
+                lista.innerHTML = '<p>Erro ao carregar setores</p>';
+            }
+        }
+
+        // Toggle permissão de usuário
+        async function togglePermissaoUsuario(usuarioId, conceder) {
+            try {
+                if (conceder) {
+                    await concederPermissao(relatorioPermissoesId, usuarioId, null);
+                } else {
+                    await removerPermissao(relatorioPermissoesId, usuarioId, null);
+                }
+            } catch (error) {
+                console.error('Erro ao atualizar permissão:', error);
+                mostrarAlerta('Erro ao atualizar permissão', 'error');
+            }
+        }
+
+        // Toggle permissão de setor
+        async function togglePermissaoSetor(setorNome, conceder) {
+            try {
+                if (conceder) {
+                    await concederPermissao(relatorioPermissoesId, null, setorNome);
+                } else {
+                    await removerPermissao(relatorioPermissoesId, null, setorNome);
+                }
+            } catch (error) {
+                console.error('Erro ao atualizar permissão:', error);
+                mostrarAlerta('Erro ao atualizar permissão', 'error');
+            }
+        }
+
+        // Remover permissão
+        async function removerPermissao(relatorioId, usuarioId, setorNome) {
+            let query = supabase
+                .from('permissoes')
+                .delete()
+                .eq('relatorio_id', relatorioId);
+
+            if (usuarioId) {
+                query = query.eq('usuario_id', usuarioId);
+            } else {
+                query = query.eq('setor', setorNome);
+            }
+
+            const { error } = await query;
+            if (error) throw error;
+        }
+
+        // Filtrar usuários
+        function filtrarUsuarios(busca) {
+            const lista = document.getElementById('listaUsuarios');
+            const items = lista.querySelectorAll('.permission-item');
+            
+            items.forEach(item => {
+                const texto = item.textContent.toLowerCase();
+                item.style.display = texto.includes(busca.toLowerCase()) ? 'block' : 'none';
+            });
+        }
+
+        // Filtrar setores
+        function filtrarSetores(busca) {
+            const lista = document.getElementById('listaSetores');
+            const items = lista.querySelectorAll('.permission-item');
+            
+            items.forEach(item => {
+                const texto = item.textContent.toLowerCase();
+                item.style.display = texto.includes(busca.toLowerCase()) ? 'block' : 'none';
+            });
+        }
+
+        // Mostrar alerta
+        function mostrarAlerta(mensagem, tipo = 'info') {
+            // Criar elemento de alerta
+            const alerta = document.createElement('div');
+            alerta.className = `alert alert-${tipo === 'error' ? 'danger' : tipo === 'success' ? 'success' : 'info'}`;
+            alerta.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 9999; max-width: 400px; animation: slideIn 0.3s;';
+            alerta.innerHTML = `
+                <strong>${tipo === 'error' ? '❌' : tipo === 'success' ? '✅' : 'ℹ️'}</strong>
+                ${mensagem}
+            `;
+            
+            document.body.appendChild(alerta);
+            
+            // Remover após 5 segundos
+            setTimeout(() => {
+                alerta.style.animation = 'slideOut 0.3s';
+                setTimeout(() => alerta.remove(), 300);
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
